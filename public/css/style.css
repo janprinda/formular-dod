@@ -1,5 +1,5 @@
 /* =========================================================
-   DOD Formulář – Mobile-First Dark Design System
+   DOD Formulář – Non-Scrollable Mobile-First Dark System
    ========================================================= */
 
 :root {
@@ -9,13 +9,11 @@
   --bg-primary: #09090b;
   --bg-surface: #121215;
   --bg-surface-hover: #18181d;
-  --bg-input: #16161a;
-  --bg-chip: #18181c;
-  --bg-chip-active: #2563eb;
+  --bg-input: #151518;
 
   /* Borders */
-  --border-light: #26262b;
-  --border-hover: #383842;
+  --border-light: #242429;
+  --border-hover: #33333c;
   --border-focus: #3b82f6;
 
   /* Typography */
@@ -43,7 +41,6 @@
   --success: #34d399;
   --success-bg: rgba(16, 185, 129, 0.12);
   --success-border: rgba(16, 185, 129, 0.28);
-  --success-text: #6ee7b7;
 
   /* Radii & Shadows */
   --radius-sm: 10px;
@@ -52,7 +49,6 @@
   --radius-full: 9999px;
 
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-float: 0 -4px 20px 0 rgba(0, 0, 0, 0.6);
   --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.5);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -66,78 +62,82 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html, body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  width: 100%;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-main);
-  line-height: 1.5;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-}
-
-html {
-  height: -webkit-fill-available;
 }
 
 /* =========================================================
-   Mobile Frame Container (Phone Focused Layout)
+   Mobile App Layout (Strictly Non-Scrollable 100dvh)
    ========================================================= */
 
 .mobile-app {
   display: flex;
   justify-content: center;
+  align-items: center;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
   background-color: #050507;
 }
 
 .mobile-frame {
   width: 100%;
   max-width: 480px;
-  min-height: 100vh;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   background-color: var(--bg-primary);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   position: relative;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
 }
 
 @media (min-width: 641px) {
   .mobile-frame {
-    margin: 20px auto;
-    min-height: calc(100vh - 40px);
+    height: min(840px, 94dvh);
+    max-height: 94dvh;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-light);
-    overflow: hidden;
   }
 }
 
 /* =========================================================
-   Sticky Header & Progress Bar
+   Top Bar & Progress (Fixed Height, Compact)
    ========================================================= */
 
 .app-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background-color: rgba(9, 9, 11, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  flex: 0 0 auto;
+  background-color: rgba(9, 9, 11, 0.95);
   border-bottom: 1px solid var(--border-light);
-  padding: 14px 20px 10px;
+  padding: 12px 20px 10px;
+  z-index: 20;
 }
 
 .app-header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .school-tag {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -149,17 +149,17 @@ html {
   height: 7px;
   border-radius: 50%;
   background-color: var(--accent-blue);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.9);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
 }
 
 .header-admin-link {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 3px 9px;
   border-radius: var(--radius-full);
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
@@ -174,20 +174,19 @@ html {
 .progress-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .step-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
 }
 
 .step-counter {
   font-weight: 700;
   color: var(--text-main);
-  letter-spacing: -0.01em;
 }
 
 .step-name {
@@ -197,7 +196,7 @@ html {
 
 .progress-track {
   width: 100%;
-  height: 4px;
+  height: 3px;
   background-color: var(--border-light);
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -208,33 +207,55 @@ html {
   background: linear-gradient(90deg, #3b82f6, #60a5fa);
   border-radius: var(--radius-full);
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+/* Alert Banner */
+.app-alert {
+  flex: 0 0 auto;
+  margin: 10px 20px 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  display: none;
+}
+
+.alert-danger {
+  background-color: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
 }
 
 /* =========================================================
-   Step Form Content
+   Form Pages (Every Step Fits Without Scrolling)
    ========================================================= */
 
 .steps-form {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 24px 20px 110px; /* Ample space for sticky bottom nav */
+  padding: 16px 20px 10px;
 }
 
 .form-step {
+  flex: 1 1 auto;
+  min-height: 0;
   display: none;
-  animation: fadeInSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  animation: fadeInSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .form-step.active {
-  display: block;
+  display: flex;
 }
 
 @keyframes fadeInSlide {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -243,48 +264,53 @@ html {
 }
 
 .step-header {
-  margin-bottom: 22px;
+  flex: 0 0 auto;
+  margin-bottom: 12px;
 }
 
 .step-pill {
   display: inline-block;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--accent-blue-hover);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .step-title {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   line-height: 1.25;
   color: var(--text-main);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .step-desc {
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
-/* Form Controls (Phone Optimized) */
+.step-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Form Controls */
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin-bottom: 20px;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
+  gap: 6px;
 }
 
 .form-label {
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--text-main);
   display: flex;
@@ -294,27 +320,25 @@ html {
 
 .required-asterisk {
   color: var(--danger);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .form-hint {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-subtle);
-  line-height: 1.4;
-  margin-top: 2px;
+  line-height: 1.35;
 }
 
-/* Inputs & Textareas - Minimum 16px to prevent iOS Safari auto-zoom! */
 .input,
 .textarea {
   width: 100%;
   font-family: inherit;
-  font-size: 16px; /* Essential for mobile Safari */
+  font-size: 16px; /* Prevents iOS auto-zoom */
   color: var(--text-main);
   background-color: var(--bg-input);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  padding: 13px 15px;
+  padding: 12px 14px;
   outline: none;
   transition: var(--transition);
   -webkit-appearance: none;
@@ -322,8 +346,7 @@ html {
 
 .input-lg {
   font-size: 17px;
-  padding: 14px 16px;
-  font-weight: 500;
+  padding: 13px 15px;
 }
 
 .input:focus,
@@ -339,18 +362,25 @@ html {
 }
 
 .textarea {
-  min-height: 110px;
-  resize: vertical;
-  line-height: 1.55;
+  resize: none;
+  line-height: 1.5;
 }
 
-/* Spotlight textarea for advice to students */
+/* Flexible textareas tailored to fit exactly in viewport */
+.textarea-fit {
+  flex: 1 1 auto;
+  min-height: 130px;
+  max-height: 220px;
+}
+
 .textarea-spotlight {
-  min-height: 220px;
-  line-height: 1.6;
+  flex: 1 1 auto;
+  min-height: 180px;
+  max-height: 280px;
+  background-color: #16161b;
+  border-color: #2b2b34;
   font-size: 16px;
-  background-color: #17171c;
-  border-color: #2e2e36;
+  line-height: 1.55;
 }
 
 .textarea-spotlight:focus {
@@ -358,18 +388,40 @@ html {
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
+/* Compact grid for Step 7 (Contacts) */
+.compact-fields-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
+.compact-group {
+  gap: 3px;
+}
+
+.compact-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input-sm {
+  padding: 8px 12px;
+  font-size: 15px;
+}
 
 /* =========================================================
-   Mobile Photo Upload Card
+   Photo Upload (Step 8)
    ========================================================= */
 
 .mobile-photo-card {
   position: relative;
   background-color: var(--bg-input);
-  border: 2px dashed #33333d;
+  border: 2px dashed #2e2e38;
   border-radius: var(--radius-md);
-  padding: 32px 20px;
+  padding: 24px 16px;
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
@@ -378,8 +430,7 @@ html {
   align-items: center;
 }
 
-.mobile-photo-card:hover,
-.mobile-photo-card.dragover {
+.mobile-photo-card:hover {
   border-color: var(--accent-blue);
   background-color: #191920;
 }
@@ -394,46 +445,43 @@ html {
 }
 
 .photo-card-icon {
-  width: 58px;
-  height: 58px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #202028;
+  background: #1c1c24;
   border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--accent-blue-hover);
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .photo-card-title {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .photo-card-sub {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: var(--text-muted);
-  max-width: 320px;
-  line-height: 1.4;
 }
 
-/* Mobile Preview Box */
 .mobile-preview-box {
   display: none;
   background-color: var(--bg-input);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  padding: 16px;
-  gap: 16px;
+  padding: 12px;
+  gap: 12px;
   align-items: center;
 }
 
 .mobile-preview-img {
-  width: 84px;
-  height: 84px;
+  width: 70px;
+  height: 70px;
   border-radius: var(--radius-sm);
   object-fit: cover;
   border: 1px solid var(--border-light);
@@ -446,7 +494,7 @@ html {
 }
 
 .preview-name {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
@@ -455,30 +503,24 @@ html {
 }
 
 .preview-meta {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   color: var(--text-muted);
-  margin: 3px 0 10px;
+  margin: 2px 0 8px;
 }
 
 .btn-change-photo {
   background: none;
   border: 1px solid var(--danger-border);
   color: var(--danger);
-  padding: 6px 12px;
-  font-size: 0.78rem;
+  padding: 4px 10px;
+  font-size: 0.74rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: var(--transition);
 }
 
-.btn-change-photo:hover {
-  background-color: var(--danger-bg);
-}
-
-/* Consent Card */
 .consent-card {
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: 10px;
+  padding: 12px;
   background-color: #121217;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
@@ -487,7 +529,7 @@ html {
 .checkbox-container {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   user-select: none;
 }
@@ -497,13 +539,13 @@ html {
 }
 
 .checkbox-checkmark {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
   border: 1.5px solid #44444e;
   background-color: var(--bg-input);
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
   transition: var(--transition);
   display: flex;
   align-items: center;
@@ -517,8 +559,8 @@ html {
 
 .checkbox-container input:checked ~ .checkbox-checkmark::after {
   content: "";
-  width: 5px;
-  height: 9px;
+  width: 4px;
+  height: 8px;
   border: solid #ffffff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
@@ -526,31 +568,23 @@ html {
 }
 
 .checkbox-text {
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 /* =========================================================
-   Sticky Bottom Navigation Bar (Thumb-Friendly)
+   Bottom Navigation (Fixed Height)
    ========================================================= */
 
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  background-color: rgba(9, 9, 11, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  flex: 0 0 auto;
+  background-color: rgba(9, 9, 11, 0.98);
   border-top: 1px solid var(--border-light);
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
   display: flex;
   gap: 10px;
-  z-index: 100;
-  box-shadow: var(--shadow-float);
+  z-index: 20;
 }
 
 .btn {
@@ -559,20 +593,20 @@ html {
   justify-content: center;
   gap: 8px;
   font-family: inherit;
-  font-size: 0.96rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  padding: 13px 20px;
+  padding: 12px 20px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
   transition: var(--transition);
   text-decoration: none;
-  min-height: 48px; /* Mobile touch friendly target */
+  min-height: 48px;
 }
 
 .btn-nav-back {
   flex: 0 0 auto;
-  min-width: 95px;
+  min-width: 90px;
   background-color: var(--bg-surface);
   color: var(--text-main);
   border-color: var(--border-light);
@@ -580,7 +614,6 @@ html {
 
 .btn-nav-back:hover {
   background-color: #1e1e24;
-  border-color: var(--border-hover);
 }
 
 .btn-nav-next {
@@ -591,17 +624,11 @@ html {
 
 .btn-nav-next:hover {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.btn-nav-next:active {
-  transform: translateY(0);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none !important;
 }
 
 .spinner {
@@ -618,32 +645,21 @@ html {
   to { transform: rotate(360deg); }
 }
 
-/* Alerts */
-.app-alert {
-  margin: 12px 20px 0;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  display: none;
-}
-
-.alert-danger {
-  background-color: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  color: var(--danger-text);
-}
-
-/* Success Screen (Mobile Style) */
+/* Success View */
 .success-screen-mobile {
+  flex: 1 1 auto;
   display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  padding: 60px 24px;
+  padding: 24px;
 }
 
 .success-icon-badge {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 20px;
+  width: 68px;
+  height: 68px;
+  margin-bottom: 16px;
   border-radius: 50%;
   background-color: var(--success-bg);
   border: 1px solid var(--success-border);
@@ -651,31 +667,32 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
 }
 
 .success-mobile-title {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .success-mobile-desc {
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: 28px;
+  line-height: 1.45;
+  margin-bottom: 24px;
 }
 
 .success-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 /* =========================================================
-   Admin Styles (Desktop & Responsive)
+   Admin Styles
    ========================================================= */
 
 .container {
@@ -683,6 +700,8 @@ html {
   max-width: 1180px;
   margin: 0 auto;
   padding: 30px 20px 60px;
+  overflow-y: auto;
+  height: 100dvh;
 }
 
 .admin-header {
@@ -789,7 +808,6 @@ html {
 .student-card:hover {
   background-color: var(--bg-surface-hover);
   border-color: var(--border-hover);
-  box-shadow: var(--shadow-card);
   transform: translateY(-2px);
 }
 
@@ -936,7 +954,6 @@ html {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: var(--transition);
 }
 
 .modal-close:hover {
@@ -988,7 +1005,6 @@ html {
   border: 1px solid var(--border-light);
   color: var(--accent-blue-hover);
   text-decoration: none;
-  transition: var(--transition);
 }
 
 .link-pill:hover {
@@ -1010,7 +1026,6 @@ html {
   gap: 6px;
   padding: 6px 12px;
   border-radius: var(--radius-sm);
-  transition: var(--transition);
 }
 
 .nav-link:hover {

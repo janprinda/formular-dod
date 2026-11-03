@@ -32,14 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const stepTitles = {
     1: 'O tobě',
-    2: 'Zkušenost se školou',
-    3: 'Vzkaz pro prváky',
-    4: 'Tvoje tvorba',
-    5: 'Kontakty',
-    6: 'Fotka & Odeslání',
+    2: 'Výběr školy',
+    3: 'Co tě baví',
+    4: 'Vzkaz pro prváky',
+    5: 'Tvoje tvorba',
+    6: 'Soutěže a úspěchy',
+    7: 'Kontakty & Odkazy',
+    8: 'Fotka & Odeslání',
   };
 
-  // Helper to format bytes
   function formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -51,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function showError(msg) {
     errorAlert.textContent = msg;
     errorAlert.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function hideError() {
@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const stepNum = parseInt(step.dataset.step, 10);
       if (stepNum === currentStep) {
         step.classList.add('active');
-        // Autofocus first input on the new step (mobile smooth keyboard)
         const firstInput = step.querySelector('input, textarea');
         if (firstInput && window.innerWidth > 640) {
           firstInput.focus();
@@ -79,9 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Update Header progress
-    stepCounter.textContent = `Krok ${currentStep} ze ${totalSteps}`;
+    stepCounter.textContent = `Krok ${currentStep} z ${totalSteps}`;
     stepName.textContent = stepTitles[currentStep] || '';
-    const percent = ((currentStep) / totalSteps) * 100;
+    const percent = (currentStep / totalSteps) * 100;
     progressBar.style.width = `${percent}%`;
 
     // Update Back button
@@ -99,8 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
       nextBtnText.textContent = 'Pokračovat';
       nextBtnIcon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
     }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Step Validation
@@ -112,12 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const schoolClass = classInput.value.trim();
 
       if (!fullName) {
-        showError('Prosím vyplň své jméno a příjmení.');
+        showError('Vyplň prosím své jméno a příjmení.');
         document.getElementById('fullName').focus();
         return false;
       }
       if (!schoolClass) {
-        showError('Vyber nebo napiš svou třídu (např. IT3).');
+        showError('Napiš svoji třídu (např. IT3).');
         classInput.focus();
         return false;
       }
@@ -125,13 +122,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (currentStep === 2) {
       const whySchool = document.getElementById('whySchool').value.trim();
-      const whatYouLike = document.getElementById('whatYouLike').value.trim();
-
       if (!whySchool) {
         showError('Napiš alespoň krátce, proč sis vybral/a naši školu.');
         document.getElementById('whySchool').focus();
         return false;
       }
+    }
+
+    if (currentStep === 3) {
+      const whatYouLike = document.getElementById('whatYouLike').value.trim();
       if (!whatYouLike) {
         showError('Napiš, co se ti na škole líbí nebo co tě baví.');
         document.getElementById('whatYouLike').focus();
@@ -139,10 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (currentStep === 6) {
+    if (currentStep === 8) {
       const consent = document.getElementById('consent').checked;
       if (!consent) {
-        showError('Pro odeslání je potřeba potvrdit souhlas se zveřejněním v rámci DOD.');
+        showError('Pro odeslání je potřeba potvrdit souhlas se zveřejněním.');
         return false;
       }
     }
@@ -158,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
       currentStep++;
       updateStepUI();
     } else {
-      // Final submission
       submitForm();
     }
   });
@@ -171,9 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-
-
-  // Enter key navigation on single line inputs
+  // Enter key on inputs moves to next step
   form.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') {
       e.preventDefault();
@@ -273,12 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
       form.style.display = 'none';
       bottomNav.style.display = 'none';
       stepCounter.parentElement.parentElement.style.display = 'none';
-      successScreen.style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      successScreen.style.display = 'flex';
 
     } catch (err) {
       console.error(err);
-      showError(err.message || 'Nepodařilo se odeslat odpovědi. Zkontrolujte připojení k síti.');
+      showError(err.message || 'Nepodařilo se odeslat odpovědi. Zkontrolujte připojení.');
     } finally {
       nextBtn.disabled = false;
       prevBtn.disabled = false;
