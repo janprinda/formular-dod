@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     5: 'Tvoje tvorba',
     6: 'Soutěže a úspěchy',
     7: 'Kontakty & Odkazy',
-    8: 'Fotka & Odeslání',
+    8: 'Tvoje fotka',
+    9: 'Chceš něco dodat?',
   };
 
   function formatBytes(bytes) {
@@ -92,8 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update Next button
     if (currentStep === totalSteps) {
-      nextBtnText.textContent = 'Odeslat formulář';
-      nextBtnIcon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+      nextBtnText.textContent = 'Poslat';
+      nextBtnIcon.innerHTML = '<polygon points="22 2 15 22 11 13 2 9 22 2"/><line x1="22" y1="2" x2="11" y2="13"/>';
     } else {
       nextBtnText.textContent = 'Pokračovat';
       nextBtnIcon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (currentStep === 8) {
+    if (currentStep === 9) {
       const consent = document.getElementById('consent').checked;
       if (!consent) {
         showError('Pro odeslání je potřeba potvrdit souhlas se zveřejněním.');
@@ -271,6 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
       stepCounter.parentElement.parentElement.style.display = 'none';
       successScreen.style.display = 'flex';
 
+      // Load animated INFIS logo fresh
+      const logoIframe = document.getElementById('logoIframe');
+      if (logoIframe) {
+        logoIframe.src = '/infis-logo-v11.html';
+      }
+
     } catch (err) {
       console.error(err);
       showError(err.message || 'Nepodařilo se odeslat odpovědi. Zkontrolujte připojení.');
@@ -278,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
       nextBtn.disabled = false;
       prevBtn.disabled = false;
       submitSpinner.style.display = 'none';
-      nextBtnText.textContent = 'Odeslat formulář';
+      nextBtnText.textContent = 'Poslat';
     }
   }
 
@@ -287,6 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
     form.reset();
     clearPhoto();
     currentStep = 1;
+
+    // Reset logo iframe
+    const logoIframe = document.getElementById('logoIframe');
+    if (logoIframe) {
+      logoIframe.src = 'about:blank';
+    }
+
     form.style.display = 'flex';
     bottomNav.style.display = 'flex';
     stepCounter.parentElement.parentElement.style.display = 'block';

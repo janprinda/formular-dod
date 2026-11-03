@@ -33,11 +33,11 @@
       <!-- Progress Track -->
       <div class="progress-section">
         <div class="step-meta">
-          <span id="stepCounter" class="step-counter">Krok 1 z 8</span>
+          <span id="stepCounter" class="step-counter">Krok 1 z 9</span>
           <span id="stepName" class="step-name">O tobě</span>
         </div>
         <div class="progress-track">
-          <div id="progressBar" class="progress-fill" style="width: 12.5%;"></div>
+          <div id="progressBar" class="progress-fill" style="width: 11.11%;"></div>
         </div>
       </div>
     </header>
@@ -264,11 +264,11 @@
       </div>
 
       <!-- ==========================================
-           PAGE 8: Fotka & Odeslání
+           PAGE 8: Tvoje fotografie
            ========================================== -->
       <div class="form-step" data-step="8">
         <div class="step-header">
-          <span class="step-pill">08 • Poslední krok</span>
+          <span class="step-pill">08 • Tvoje fotka</span>
           <h1 class="step-title">Nahraj svoji fotografii</h1>
           <p class="step-desc">Reprezentativní fotka na web školy a DOD.</p>
         </div>
@@ -300,6 +300,29 @@
               </button>
             </div>
           </div>
+          <span class="form-hint" style="text-align: center;">Fotka je volitelná, ale pomůže ti vyniknout na webu školy!</span>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PAGE 9: Chceš ještě něco dodat? & Odeslání
+           ========================================== -->
+      <div class="form-step" data-step="9">
+        <div class="step-header">
+          <span class="step-pill">09 • Poslední otázka</span>
+          <h1 class="step-title">Chceš ještě něco dodat?</h1>
+          <p class="step-desc">Máš na srdci ještě cokoliv, co nezaznělo v předchozích krocích?</p>
+        </div>
+
+        <div class="step-content">
+          <div class="form-group">
+            <textarea 
+              id="additionalNote" 
+              name="additionalNote" 
+              class="textarea textarea-fit" 
+              placeholder="Cokoliv dalšího, historka ze školy, vzkaz učitelům nebo organizátorům... (volitelné)"
+            ></textarea>
+          </div>
 
           <!-- Consent Checkbox -->
           <div class="consent-card">
@@ -316,23 +339,25 @@
 
     </form>
 
-    <!-- Success Screen (Centered in Viewport) -->
+    <!-- Success Screen (Shows the animated INFIS logo from public) -->
     <div id="successScreen" class="success-screen-mobile">
-      <div class="success-icon-badge">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <div class="logo-viewport">
+        <iframe id="logoIframe" class="logo-iframe" src="about:blank" frameborder="0" scrolling="no"></iframe>
       </div>
-      <h2 class="success-mobile-title">Díky moc za tvůj příběh!</h2>
-      <p class="success-mobile-desc">
-        Tvoje odpovědi i fotka byly úspěšně uloženy.
-      </p>
+      <div class="success-footer-card">
+        <h2 class="success-mobile-title">Díky moc za tvůj příběh!</h2>
+        <p class="success-mobile-desc">
+          Tvoje odpovědi i fotka byly úspěšně odeslány.
+        </p>
 
-      <div class="success-actions">
-        <button type="button" class="btn btn-secondary" id="newResponseBtn">
-          Vyplnit další odpověď
-        </button>
-        <a href="/admin" class="btn btn-primary">
-          Přejít do administrace
-        </a>
+        <div class="success-actions">
+          <button type="button" class="btn btn-secondary" id="newResponseBtn">
+            Vyplnit další odpověď
+          </button>
+          <a href="/admin" class="btn btn-primary">
+            Přejít do administrace
+          </a>
+        </div>
       </div>
     </div>
 

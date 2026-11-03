@@ -88,9 +88,11 @@ class Storage {
       github: (payload.github || '').trim(),
       linkedin: (payload.linkedin || '').trim(),
       portfolio: (payload.portfolio || '').trim(),
-      // 5. Fotka
+      // 5. Něco navíc
+      additionalNote: (payload.additionalNote || '').trim(),
+      // 6. Fotka
       photo: photoInfo,
-      // 6. Souhlas
+      // 7. Souhlas
       consent: payload.consent === true || payload.consent === 'true' || payload.consent === 'on',
     };
 
@@ -158,6 +160,7 @@ class Storage {
       'GitHub',
       'LinkedIn',
       'Portfolio',
+      'Něco navíc',
       'Má fotku',
       'URL fotky',
       'Souhlas udělen',
@@ -185,6 +188,7 @@ class Storage {
       escapeCSV(item.github),
       escapeCSV(item.linkedin),
       escapeCSV(item.portfolio),
+      escapeCSV(item.additionalNote),
       escapeCSV(item.photo ? 'Ano' : 'Ne'),
       escapeCSV(item.photo ? item.photo.url : ''),
       escapeCSV(item.consent ? 'Ano' : 'Ne'),

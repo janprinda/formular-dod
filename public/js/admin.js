@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
           item.whatYouLike,
           item.projects,
           item.competitions,
+          item.additionalNote,
           item.email,
         ]
           .filter(Boolean)
@@ -297,6 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `<div class="modal-field">
               <div class="modal-field-label">Soutěže a úspěchy</div>
               <div class="modal-field-value">${escapeHTML(item.competitions)}</div>
+            </div>`
+          : ''
+      }
+
+      ${
+        item.additionalNote
+          ? `<div class="modal-field">
+              <div class="modal-field-label">Chceš ještě něco dodat?</div>
+              <div class="modal-field-value">${escapeHTML(item.additionalNote)}</div>
             </div>`
           : ''
       }

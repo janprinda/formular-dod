@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INFIS</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#1E46A0;overflow:hidden}
+  body{display:grid;place-items:center}
+  svg{width:min(72vw,960px);height:auto;display:block;overflow:visible}
+
+  #world{transform-origin:0 0;transform-box:view-box}
+  .d{opacity:0;transform-box:fill-box;transform-origin:center}
+  .letter{opacity:0}
+
+  @media (prefers-reduced-motion:reduce){
+    .d,.letter{opacity:1}
+  }
+</style>
+</head>
+<body>
+<svg id="logo" viewBox="10 10 108 44" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="INFIS">
+  <g id="world">
+
+    <!-- icon: dots (original positions and colours). Order matters: 0 is the origin circle. -->
+    <g id="dots">
+      <g class="d"><circle cx="21.8" cy="29.8" r="2" fill="#E65032"/></g>
+      <g class="d"><circle cx="21.8" cy="21.8" r="2" fill="#E65032"/></g>
+      <g class="d"><circle cx="21.8" cy="37.7" r="2" fill="#E65032"/></g>
+      <g class="d"><circle cx="31.4" cy="25.8" r="2" fill="#fff"/></g>
+      <g class="d"><circle cx="31.4" cy="33.7" r="2" fill="#fff"/></g>
+      <g class="d"><circle cx="31.4" cy="41.7" r="2" fill="#fff"/></g>
+      <g class="d"><circle cx="41"   cy="21.8" r="2" fill="#fff"/></g>
+      <g class="d"><circle cx="41"   cy="29.8" r="2" fill="#fff"/></g>
+    </g>
+
+    <!-- wordmark: INFIS (original outlines) -->
+    <g id="wm" fill="#fff">
+      <g class="letter"><polygon points="52.6,39.7 52.6,37.2 54.4,37.2 54.4,27.8 52.6,27.8 52.6,25.3 59.4,25.3 59.4,27.8 57.6,27.8 57.6,37.2 59.4,37.2 59.4,39.7"/></g>
+      <g class="letter"><polygon points="66.3,32.9 64.9,30 64.9,30 64.9,39.7 61.9,39.7 61.9,25.3 65.4,25.3 69.3,32.1 70.7,35 70.7,35 70.7,25.3 73.7,25.3 73.7,39.7 70.3,39.7"/></g>
+      <g class="letter"><polygon points="76.7,39.7 76.7,25.3 86.3,25.3 86.3,28.1 79.9,28.1 79.9,31 85.4,31 85.4,33.8 79.9,33.8 79.9,39.7"/></g>
+      <g class="letter"><polygon points="88.1,39.7 88.1,37.2 90,37.2 90,27.8 88.1,27.8 88.1,25.3 95,25.3 95,27.8 93.1,27.8 93.1,37.2 95,37.2 95,39.7"/></g>
+      <g class="letter"><path d="M102.3,39.9c-1.3,0-2.3-0.2-3.2-0.7c-0.9-0.4-1.6-1-2.3-1.7l2.1-2.1c1,1.1,2.2,1.6,3.6,1.6c0.8,0,1.3-0.2,1.7-0.5c0.4-0.3,0.6-0.7,0.6-1.2c0-0.4-0.1-0.7-0.3-1c-0.2-0.3-0.7-0.4-1.3-0.5l-1.4-0.2c-1.5-0.2-2.6-0.7-3.4-1.4c-0.7-0.7-1.1-1.7-1.1-2.9c0-0.6,0.1-1.2,0.4-1.8c0.2-0.5,0.6-1,1.1-1.4c0.5-0.4,1-0.7,1.7-0.9c0.7-0.2,1.4-0.3,2.3-0.3c1.1,0,2,0.2,2.9,0.5c0.8,0.3,1.5,0.8,2.1,1.5l-2.1,2.1c-0.3-0.4-0.8-0.7-1.2-1c-0.5-0.3-1.1-0.4-1.8-0.4c-0.7,0-1.2,0.1-1.6,0.4c-0.3,0.2-0.5,0.6-0.5,1c0,0.5,0.1,0.8,0.4,1.1c0.3,0.2,0.7,0.4,1.3,0.5l1.4,0.2c1.5,0.2,2.6,0.7,3.3,1.4c0.7,0.7,1.1,1.7,1.1,2.9c0,0.7-0.1,1.3-0.4,1.9c-0.2,0.6-0.6,1.1-1.1,1.5c-0.5,0.4-1.1,0.7-1.8,1C103.9,39.8,103.1,39.9,102.3,39.9"/></g>
+    </g>
+  </g>
+</svg>
+
+<script>
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const O = '#E65032', W = '#ffffff';
+  const logo = document.getElementById('logo');
+  const world = document.getElementById('world');
+  const dotEls = [...document.querySelectorAll('.d')];
+  const circles = dotEls.map(g => g.firstElementChild);
+  const letters = [...document.querySelectorAll('.letter')];
+
+  /* ---------- timeline (ms) ---------- */
+  const T_HOLD = 150;      // full-screen orange, a beat
+  const T_C    = 1050;     // orange has shrunk down to the circle
+  const T_END  = 2300;     // camera has pulled back to the whole logo
+  const T_L    = 1870;     // letters start sliding out: icon is done and the camera has nearly settled
+  const T_ALL  = 2700;     // everything in place
+  const SHOW   = 2300;     // how long the finished logo is held before the loop restarts
+  const FADE   = 350;
+
+  /* Three beats, one column at a time, every dot of a column moving together:
+       1st  the circle splits into the orange column of three
+       2nd  the white column of three buds off it
+       3rd  the last white pair buds off that                                       */
+  const F = .4, SPLIT = 380, EASE_SPLIT = 'cubic-bezier(.5,0,.2,1)', TM = 700;
+  const spec = [
+    {x:21.8, y:29.8, c:O},                          // 0  the origin circle
+    {x:21.8, y:21.8, c:O, p:0, r:0},                // 1  up
+    {x:21.8, y:37.7, c:O, p:0, r:0},                // 2  down
+    {x:31.4, y:25.8, c:W, p:1, r:750},              // 3  from 1   (column 2 together)
+    {x:31.4, y:33.7, c:W, p:0, r:750},              // 4  from 0
+    {x:31.4, y:41.7, c:W, p:2, r:750},              // 5  from 2
+    {x:41,   y:21.8, c:W, p:3, r:1450},             // 6  from 3   (column 3 together)
+    {x:41,   y:29.8, c:W, p:4, r:1450}              // 7  from 4
+  ];
+  spec.forEach(s => { if (s.p != null) s.t = TM + s.r * F; });
+
+  /* ---------- camera ---------- */
+  const A2 = spec[0], S_C = 5;
+  const camV = (wx, wy, s) => `translate(${64 - s*wx}px,${32 - s*wy}px) scale(${s})`;   // view centred on a world point
+  const easeIO = u => u < .5 ? 4*u*u*u : 1 - Math.pow(-2*u + 2, 3) / 2;
+  const bez = (x1, y1, x2, y2) => {                                                    // cubic-bezier easing as a function
+    const cx = 3*x1, bx = 3*(x2 - x1) - cx, ax = 1 - cx - bx, cy = 3*y1, by = 3*(y2 - y1) - cy, ay = 1 - cy - by;
+    const X = t => ((ax*t + bx)*t + cx)*t, Y = t => ((ay*t + by)*t + cy)*t;
+    return x => { let lo = 0, hi = 1, t = x; for (let i = 0; i < 30; i++) { const v = X(t); if (Math.abs(v - x) < 1e-6) break; v < x ? lo = t : hi = t; t = (lo + hi) / 2; } return Y(t); };
+  };
+  const CE = bez(.45, 0, .25, 1);
+
+  function buildCamera() {
+    const unit = logo.getBoundingClientRect().width / 108;                  // px per user unit
+    const S0 = (Math.hypot(innerWidth, innerHeight) / 2 * 1.03) / (unit * 2);   // zoom where the circle covers the screen
+    const lnS0 = Math.log(S0);
+    const sAt = t =>
+      t <= T_HOLD ? S0 :
+      t <= T_C    ? S0 * Math.pow(S_C / S0, easeIO((t - T_HOLD) / (T_C - T_HOLD))) :
+      t <  T_END  ? S_C * Math.pow(1 / S_C, CE((t - T_C) / (T_END - T_C))) : 1;
+    const kf = [];
+    for (let t = 0; t < T_END; t += 25) {
+      const s = sAt(t), z = Math.log(s) / lnS0;                             // z: 1 = full screen, 0 = whole logo
+      const k = Math.min(1, Math.max(0, (.4 - z) / .4)), g = k*k*(3 - 2*k); // stays centred on the circle, then drifts to the logo centre
+      kf.push({transform: camV(A2.x + (64 - A2.x)*g, A2.y + (32 - A2.y)*g, s), offset: t / T_END, easing: 'linear'});
+    }
+    kf.push({transform: camV(64, 32, 1), offset: 1});
+    return kf;
+  }
+
+  let timer, first = true;
+  function play() {
+    logo.getAnimations({subtree: true}).forEach(a => a.cancel());
+    if (!first) logo.animate([{opacity: 0}, {opacity: 1}], {duration: 200, fill: 'both'});
+    first = false;
+
+    world.animate(buildCamera(), {duration: T_END, fill: 'both'});
+
+    spec.forEach((s, i) => {
+      const g = dotEls[i], c = circles[i];
+      if (s.p == null) { g.animate([{opacity: 1}, {opacity: 1}], {duration: 1, fill: 'both'}); return; }   // the circle IS the orange screen
+
+      const P = spec[s.p], opts = {duration: SPLIT, delay: s.t, easing: EASE_SPLIT, fill: 'forwards'};
+      g.animate([                                                            // child starts on its parent and slides to its place
+        {transform: `translate(${P.x - s.x}px,${P.y - s.y}px)`, opacity: 1},
+        {transform: 'translate(0px,0px)', opacity: 1}
+      ], opts);
+      if (s.c === W) c.animate([{fill: O, offset: 0}, {fill: W, offset: .7}, {fill: W, offset: 1}], opts);   // orange -> white while separating
+    });
+
+    /* letters ease out of the icon: a short slide with a quick fade-in, whole glyphs only (no mask, no cut-off letters).
+       Last letter first, so a letter never catches up with the one in front of it. */
+    letters.forEach((l, i) => {
+      l.animate([
+        {transform: 'translateX(-6px)', opacity: 0},
+        {opacity: 1, offset: .5},
+        {transform: 'translateX(0px)', opacity: 1}
+      ], {duration: 600, delay: T_L + (4 - i) * 55, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both'});
+    });
+
+    /* hold the finished logo, fade, play again */
+    logo.animate([{opacity: 1}, {opacity: 0}], {duration: FADE, delay: T_ALL + SHOW, easing: 'ease-in', fill: 'forwards'});
+    clearTimeout(timer);
+    timer = setTimeout(play, T_ALL + SHOW + FADE + 250);
+  }
+
+  play();
+})();
+</script>
+</body>
+</html>
