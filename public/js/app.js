@@ -269,7 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Success
       form.style.display = 'none';
       bottomNav.style.display = 'none';
-      stepCounter.parentElement.parentElement.style.display = 'none';
+      const appHeader = document.querySelector('.app-header');
+      if (appHeader) appHeader.style.display = 'none';
       successScreen.style.display = 'flex';
 
       // Load animated INFIS logo fresh
@@ -303,7 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.style.display = 'flex';
     bottomNav.style.display = 'flex';
-    stepCounter.parentElement.parentElement.style.display = 'block';
+    const appHeader = document.querySelector('.app-header');
+    if (appHeader) appHeader.style.display = 'block';
     successScreen.style.display = 'none';
     updateStepUI();
   });

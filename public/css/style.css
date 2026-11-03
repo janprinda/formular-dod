@@ -1,5 +1,5 @@
 /* =========================================================
-   DOD Formulář – Non-Scrollable Mobile-First Dark System
+   DOD Formulář – Full-Page Non-Scrollable Minimalist Dark System
    ========================================================= */
 
 :root {
@@ -9,11 +9,12 @@
   --bg-primary: #09090b;
   --bg-surface: #121215;
   --bg-surface-hover: #18181d;
-  --bg-input: #151518;
+  --bg-input: #151519;
+  --bg-input-focus: #1c1c22;
 
   /* Borders */
   --border-light: #242429;
-  --border-hover: #33333c;
+  --border-hover: #353540;
   --border-focus: #3b82f6;
 
   /* Typography */
@@ -45,11 +46,10 @@
   /* Radii & Shadows */
   --radius-sm: 10px;
   --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-lg: 18px;
   --radius-full: 9999px;
 
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.5);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -67,63 +67,48 @@ html, body {
   height: 100dvh;
   overflow: hidden;
   width: 100%;
+  background-color: var(--bg-primary);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-primary);
   color: var(--text-main);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
 /* =========================================================
-   Mobile App Layout (Strictly Non-Scrollable 100dvh)
+   Full-Screen Seamless Layout (No Ugly Box / No Frame)
    ========================================================= */
 
-.mobile-app {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100dvh;
+.app-container {
   width: 100%;
-  overflow: hidden;
-  background-color: #050507;
-}
-
-.mobile-frame {
-  width: 100%;
-  max-width: 480px;
   height: 100%;
   height: 100dvh;
-  max-height: 100dvh;
-  background-color: var(--bg-primary);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-}
-
-@media (min-width: 641px) {
-  .mobile-frame {
-    height: min(840px, 94dvh);
-    max-height: 94dvh;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-  }
+  background-color: var(--bg-primary);
 }
 
 /* =========================================================
-   Top Bar & Progress (Fixed Height, Compact)
+   Top Navigation & Progress
    ========================================================= */
 
 .app-header {
   flex: 0 0 auto;
+  width: 100%;
   background-color: rgba(9, 9, 11, 0.95);
   border-bottom: 1px solid var(--border-light);
-  padding: 12px 20px 10px;
+  padding: 12px 24px 10px;
   z-index: 20;
+}
+
+.header-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .app-header-top {
@@ -137,7 +122,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -158,8 +143,8 @@ body {
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
@@ -181,7 +166,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
 }
 
 .step-counter {
@@ -209,13 +194,19 @@ body {
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Alert Banner */
+/* Alert Container */
+.alert-container {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
 .app-alert {
-  flex: 0 0 auto;
-  margin: 10px 20px 0;
-  padding: 8px 12px;
+  margin-top: 10px;
+  padding: 9px 14px;
   border-radius: var(--radius-sm);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   display: none;
 }
 
@@ -226,16 +217,27 @@ body {
 }
 
 /* =========================================================
-   Form Pages (Every Step Fits Without Scrolling)
+   Main Content Area (Fluid, Non-Scrollable, Clean)
    ========================================================= */
+
+.main-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 24px 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
 .steps-form {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 16px 20px 10px;
+  overflow: hidden;
 }
 
 .form-step {
@@ -265,32 +267,33 @@ body {
 
 .step-header {
   flex: 0 0 auto;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .step-pill {
   display: inline-block;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--accent-blue-hover);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .step-title {
-  font-size: 1.4rem;
+  font-size: clamp(1.45rem, 3.2vw, 2.1rem);
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.25;
   color: var(--text-main);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .step-desc {
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
-  line-height: 1.35;
+  line-height: 1.4;
+  max-width: 600px;
 }
 
 .step-content {
@@ -299,7 +302,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 /* Form Controls */
@@ -310,7 +313,7 @@ body {
 }
 
 .form-label {
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-main);
   display: flex;
@@ -324,7 +327,7 @@ body {
 }
 
 .form-hint {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-subtle);
   line-height: 1.35;
 }
@@ -333,12 +336,12 @@ body {
 .textarea {
   width: 100%;
   font-family: inherit;
-  font-size: 16px; /* Prevents iOS auto-zoom */
+  font-size: 16px;
   color: var(--text-main);
   background-color: var(--bg-input);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 13px 16px;
   outline: none;
   transition: var(--transition);
   -webkit-appearance: none;
@@ -346,13 +349,13 @@ body {
 
 .input-lg {
   font-size: 17px;
-  padding: 13px 15px;
+  padding: 14px 18px;
 }
 
 .input:focus,
 .textarea:focus {
   border-color: var(--border-focus);
-  background-color: #1a1a20;
+  background-color: var(--bg-input-focus);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
@@ -363,24 +366,23 @@ body {
 
 .textarea {
   resize: none;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Flexible textareas tailored to fit exactly in viewport */
 .textarea-fit {
   flex: 1 1 auto;
-  min-height: 130px;
-  max-height: 220px;
+  min-height: 140px;
+  max-height: 250px;
 }
 
 .textarea-spotlight {
   flex: 1 1 auto;
-  min-height: 180px;
-  max-height: 280px;
+  min-height: 200px;
+  max-height: 320px;
   background-color: #16161b;
-  border-color: #2b2b34;
-  font-size: 16px;
-  line-height: 1.55;
+  border-color: #2c2c36;
+  font-size: 17px;
+  line-height: 1.6;
 }
 
 .textarea-spotlight:focus {
@@ -388,7 +390,7 @@ body {
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
-/* Compact grid for Step 7 (Contacts) */
+/* Compact fields grid for Step 7 (Contacts) */
 .compact-fields-grid {
   display: flex;
   flex-direction: column;
@@ -407,21 +409,16 @@ body {
   letter-spacing: 0.04em;
 }
 
-.input-sm {
-  padding: 8px 12px;
-  font-size: 15px;
-}
-
 /* =========================================================
-   Photo Upload (Step 8)
+   Photo Upload (Step 8) - Clean & Minimal
    ========================================================= */
 
-.mobile-photo-card {
+.photo-upload-zone {
   position: relative;
   background-color: var(--bg-input);
-  border: 2px dashed #2e2e38;
+  border: 2px dashed #2f2f3a;
   border-radius: var(--radius-md);
-  padding: 24px 16px;
+  padding: 28px 20px;
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
@@ -430,12 +427,12 @@ body {
   align-items: center;
 }
 
-.mobile-photo-card:hover {
+.photo-upload-zone:hover {
   border-color: var(--accent-blue);
   background-color: #191920;
 }
 
-.mobile-photo-card input[type="file"] {
+.photo-upload-zone input[type="file"] {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -444,57 +441,57 @@ body {
   cursor: pointer;
 }
 
-.photo-card-icon {
-  width: 48px;
-  height: 48px;
+.photo-zone-icon {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: #1c1c24;
+  background: #1e1e28;
   border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--accent-blue-hover);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-.photo-card-title {
-  font-size: 0.92rem;
+.photo-zone-title {
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
-.photo-card-sub {
-  font-size: 0.74rem;
+.photo-zone-sub {
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
-.mobile-preview-box {
+.photo-preview-bar {
   display: none;
   background-color: var(--bg-input);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  padding: 12px;
-  gap: 12px;
+  padding: 12px 16px;
+  gap: 14px;
   align-items: center;
 }
 
-.mobile-preview-img {
-  width: 70px;
-  height: 70px;
+.photo-preview-thumb {
+  width: 72px;
+  height: 72px;
   border-radius: var(--radius-sm);
   object-fit: cover;
   border: 1px solid var(--border-light);
   flex-shrink: 0;
 }
 
-.mobile-preview-details {
+.photo-preview-meta {
   flex: 1;
   min-width: 0;
 }
 
 .preview-name {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
@@ -503,88 +500,95 @@ body {
 }
 
 .preview-meta {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin: 2px 0 8px;
+  margin-top: 2px;
 }
 
-.btn-change-photo {
+.btn-remove-photo {
   background: none;
   border: 1px solid var(--danger-border);
   color: var(--danger);
-  padding: 4px 10px;
-  font-size: 0.74rem;
+  padding: 6px 12px;
+  font-size: 0.78rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: var(--transition);
 }
 
-.consent-card {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: #121217;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
+.btn-remove-photo:hover {
+  background-color: var(--danger-bg);
 }
 
-.checkbox-container {
+/* Clean Inline Consent Checkbox (No ugly box) */
+.consent-inline {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   user-select: none;
+  margin-top: 14px;
+  padding: 6px 0;
 }
 
-.checkbox-container input {
+.consent-inline input {
   display: none;
 }
 
-.checkbox-checkmark {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  border: 1.5px solid #44444e;
+.consent-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid #484856;
   background-color: var(--bg-input);
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
   transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.checkbox-container input:checked ~ .checkbox-checkmark {
+.consent-inline input:checked ~ .consent-box {
   background-color: var(--accent-blue);
   border-color: var(--accent-blue);
 }
 
-.checkbox-container input:checked ~ .checkbox-checkmark::after {
+.consent-inline input:checked ~ .consent-box::after {
   content: "";
-  width: 4px;
-  height: 8px;
+  width: 5px;
+  height: 9px;
   border: solid #ffffff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
   margin-bottom: 2px;
 }
 
-.checkbox-text {
-  font-size: 0.78rem;
+.consent-text {
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* =========================================================
-   Bottom Navigation (Fixed Height)
+   Bottom Navigation Footer
    ========================================================= */
 
-.bottom-nav {
+.app-footer {
   flex: 0 0 auto;
+  width: 100%;
   background-color: rgba(9, 9, 11, 0.98);
   border-top: 1px solid var(--border-light);
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
-  display: flex;
-  gap: 10px;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom));
   z-index: 20;
+}
+
+.footer-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  gap: 12px;
 }
 
 .btn {
@@ -593,9 +597,9 @@ body {
   justify-content: center;
   gap: 8px;
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 0.96rem;
   font-weight: 600;
-  padding: 12px 20px;
+  padding: 13px 22px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
@@ -606,14 +610,15 @@ body {
 
 .btn-nav-back {
   flex: 0 0 auto;
-  min-width: 90px;
+  min-width: 100px;
   background-color: var(--bg-surface);
   color: var(--text-main);
   border-color: var(--border-light);
 }
 
 .btn-nav-back:hover {
-  background-color: #1e1e24;
+  background-color: var(--bg-surface-hover);
+  border-color: var(--border-hover);
 }
 
 .btn-nav-next {
@@ -645,72 +650,88 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Success View (Shows INFIS Animated Logo) */
-.success-screen-mobile {
-  flex: 1 1 auto;
-  min-height: 0;
+/* =========================================================
+   Success Screen (Full Screen Logo, Zero Ugly Boxes)
+   ========================================================= */
+
+.success-screen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1E46A0; /* Matches official INFIS animated logo background */
+  z-index: 100;
   display: none;
   flex-direction: column;
-  background-color: #1E46A0; /* Matches INFIS official brand background */
   overflow: hidden;
-  position: relative;
-  animation: fadeInSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.3s ease forwards;
 }
 
-.logo-viewport {
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .logo-iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: none;
   display: block;
+  z-index: 1;
 }
 
-.success-footer-card {
-  flex: 0 0 auto;
-  background: rgba(9, 9, 11, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
-  text-align: center;
-  z-index: 20;
-}
-
-.success-mobile-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 3px;
-}
-
-.success-mobile-desc {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.35;
-  margin-bottom: 12px;
-}
-
-.success-actions {
+.success-floating-bar {
+  position: absolute;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
   display: flex;
-  gap: 10px;
-  width: 100%;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  max-width: 480px;
 }
 
-.success-actions .btn {
+.btn-glass {
   flex: 1;
-  min-height: 44px;
-  font-size: 0.88rem;
-  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 12px 18px;
+  font-size: 0.92rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-glass-subtle {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 12px 18px;
+  font-size: 0.92rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.btn-glass-subtle:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* =========================================================
@@ -955,7 +976,7 @@ body {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-sm);
   padding: 28px;
   position: relative;
   color: var(--text-main);

@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "id": "98933623-6ae1-4824-8ab6-a4f03490fc42",
+    "createdAt": "2026-11-03T21:34:56.344Z",
+    "fullName": "dad",
+    "schoolClass": "ada",
+    "email": "",
+    "whySchool": "ad",
+    "whatYouLike": "adsad",
+    "favoriteSubject": "dad",
+    "adviceForFreshmen": "sadad",
+    "projects": "faf",
+    "competitions": "a",
+    "instagram": "a",
+    "github": "",
+    "linkedin": "",
+    "portfolio": "",
+    "additionalNote": "adadcx",
+    "photo": null,
+    "consent": true
+  },
+  {
+    "id": "edb38998-b4c6-4975-8b5e-0140224af998",
+    "createdAt": "2026-11-03T21:34:25.740Z",
+    "fullName": "aoiajfij",
+    "schoolClass": "afdhahfn",
+    "email": "",
+    "whySchool": "Ajfoajf\r\nadha",
+    "whatYouLike": "ifaof",
+    "favoriteSubject": "racek se mi líbí",
+    "adviceForFreshmen": "aijfnf",
+    "projects": "jadnalk",
+    "competitions": "Mobility hackathon, listopad 2026, 3 místo",
+    "instagram": "@jenaprinda",
+    "github": "",
+    "linkedin": "",
+    "portfolio": "",
+    "additionalNote": "",
+    "photo": null,
+    "consent": true
+  }
+]
