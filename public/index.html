@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Den otevřených dveří – Studentský formulář | INFIS</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,46 +12,53 @@
     body { font-family: 'Plus Jakarta Sans', var(--font-sans); }
   </style>
 </head>
-<body>
+<body class="mobile-app">
 
-  <div class="container">
-    <!-- Top Navigation -->
-    <div class="top-nav">
-      <a href="/admin" class="nav-link">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Přehled odpovědí (Admin)
-      </a>
-    </div>
+  <!-- Mobile App Frame -->
+  <div class="mobile-frame">
 
-    <!-- Header -->
-    <header class="header">
-      <div class="badge">
-        <span class="badge-dot"></span>
-        INFIS Plzeň • Den otevřených dveří
+    <!-- Top Sticky Bar with Progress -->
+    <header class="app-header">
+      <div class="app-header-top">
+        <span class="school-tag">
+          <span class="badge-dot"></span>
+          INFIS DOD
+        </span>
+        <a href="/admin" class="header-admin-link" title="Přehled odpovědí">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Admin
+        </a>
       </div>
-      <h1 class="title">Pověz nám svůj příběh</h1>
-      <p class="subtitle">
-        Pomoz budoucím studentům poznat naši školu očima těch, kteří na ní studují. Tvoje odpovědi a fotka se mohou objevit na webu a prezentacích DOD!
-      </p>
+
+      <!-- Step Counter & Progress -->
+      <div class="progress-section">
+        <div class="step-meta">
+          <span id="stepCounter" class="step-counter">Krok 1 ze 6</span>
+          <span id="stepName" class="step-name">O tobě</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar" class="progress-fill" style="width: 16.66%;"></div>
+        </div>
+      </div>
     </header>
 
-    <!-- Error Alert Box -->
-    <div id="errorAlert" class="alert alert-danger" role="alert"></div>
+    <!-- Error Alert Banner -->
+    <div id="errorAlert" class="alert alert-danger app-alert" role="alert"></div>
 
-    <!-- Main Form -->
-    <form id="dodForm" novalidate enctype="multipart/form-data">
-      
-      <!-- Section 1: Kdo jsi -->
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">1</span>
-          <div>
-            <h2 class="section-title">Základní údaje</h2>
-            <p class="section-desc">Kdo jsi a co na škole studuješ</p>
-          </div>
+    <!-- Multi-Step Form Container -->
+    <form id="dodForm" class="steps-form" novalidate enctype="multipart/form-data">
+
+      <!-- ==========================================
+           PAGE 1: O tobě (Základní údaje)
+           ========================================== -->
+      <div class="form-step active" data-step="1">
+        <div class="step-header">
+          <span class="step-pill">01 • Představ se</span>
+          <h1 class="step-title">Jak se jmenuješ a co na INFISu studuješ?</h1>
+          <p class="step-desc">Základní údaje, aby uchazeči na DOD věděli, od koho doporučení a tipy jsou.</p>
         </div>
 
-        <div class="form-grid">
+        <div class="step-content">
           <div class="form-group">
             <label class="form-label" for="fullName">
               Jméno a příjmení <span class="required-asterisk">*</span>
@@ -60,10 +67,11 @@
               type="text" 
               id="fullName" 
               name="fullName" 
-              class="input" 
+              class="input input-lg" 
               placeholder="např. Jan Novák" 
               required
               autocomplete="name"
+              autofocus
             >
           </div>
 
@@ -76,13 +84,32 @@
               id="schoolClass" 
               name="schoolClass" 
               class="input" 
-              placeholder="např. IT3, 2.TL, GD4" 
+              placeholder="Zadej nebo vyber třídu níže..." 
               required
             >
-            <span class="form-hint">Například IT3A, TL2, OA1 apod.</span>
+            <!-- Quick-select chips for mobile thumbs -->
+            <div class="chips-label">Rychlý výběr:</div>
+            <div class="chips-container" id="classChips">
+              <button type="button" class="chip" data-val="IT1">IT1</button>
+              <button type="button" class="chip" data-val="IT2">IT2</button>
+              <button type="button" class="chip" data-val="IT3">IT3</button>
+              <button type="button" class="chip" data-val="IT4">IT4</button>
+              <button type="button" class="chip" data-val="TL1">TL1</button>
+              <button type="button" class="chip" data-val="TL2">TL2</button>
+              <button type="button" class="chip" data-val="TL3">TL3</button>
+              <button type="button" class="chip" data-val="TL4">TL4</button>
+              <button type="button" class="chip" data-val="GD1">GD1</button>
+              <button type="button" class="chip" data-val="GD2">GD2</button>
+              <button type="button" class="chip" data-val="GD3">GD3</button>
+              <button type="button" class="chip" data-val="GD4">GD4</button>
+              <button type="button" class="chip" data-val="OA1">OA1</button>
+              <button type="button" class="chip" data-val="OA2">OA2</button>
+              <button type="button" class="chip" data-val="OA3">OA3</button>
+              <button type="button" class="chip" data-val="OA4">OA4</button>
+            </div>
           </div>
 
-          <div class="form-group grid-full">
+          <div class="form-group" style="margin-top: 8px;">
             <label class="form-label" for="email">
               E-mailová adresa (volitelně)
             </label>
@@ -94,125 +121,143 @@
               placeholder="např. novak@student.infis.cz"
               autocomplete="email"
             >
-            <span class="form-hint">Pouze pro případ, že bychom tě potřebovali kontaktovat ohledně fotky či textu.</span>
+            <span class="form-hint">Pouze pro případ, že bychom tě potřebovali kontaktovat ohledně fotky.</span>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- Section 2: Proč tato škola -->
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">2</span>
-          <div>
-            <h2 class="section-title">Tvoje zkušenost se školou</h2>
-            <p class="section-desc">Co tě vedlo k výběru a jak se ti tu líbí</p>
+      <!-- ==========================================
+           PAGE 2: Proč tato škola & Co tě baví
+           ========================================== -->
+      <div class="form-step" data-step="2">
+        <div class="step-header">
+          <span class="step-pill">02 • Zkušenost se školou</span>
+          <h1 class="step-title">Jak vidíš INFIS očima studenta?</h1>
+          <p class="step-desc">Co tě vedlo k výběru a jaké to tu je ve srovnání s očekáváním.</p>
+        </div>
+
+        <div class="step-content">
+          <div class="form-group">
+            <label class="form-label" for="whySchool">
+              Proč sis vybral/a právě INFIS? <span class="required-asterisk">*</span>
+            </label>
+            <textarea 
+              id="whySchool" 
+              name="whySchool" 
+              class="textarea" 
+              rows="3" 
+              placeholder="Jak probíhal tvůj výběr v devítce? Co pro tebe bylo rozhodující (obor, reference, vybavení, atmosféra)?" 
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="whatYouLike">
+              Co se ti na škole nejvíc líbí a co tě baví? <span class="required-asterisk">*</span>
+            </label>
+            <textarea 
+              id="whatYouLike" 
+              name="whatYouLike" 
+              class="textarea" 
+              rows="3" 
+              placeholder="Přístup učitelů, praxe a reálné projekty, moderní učebny, skvělá parta, školní akce, volnost..." 
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="favoriteSubject">
+              Oblíbený předmět nebo zaměření
+            </label>
+            <input 
+              type="text" 
+              id="favoriteSubject" 
+              name="favoriteSubject" 
+              class="input" 
+              placeholder="např. Vývoj webových aplikací, Grafika, Počítačové sítě..."
+            >
           </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="whySchool">
-            Proč sis vybral/a naši školu? <span class="required-asterisk">*</span>
-          </label>
-          <textarea 
-            id="whySchool" 
-            name="whySchool" 
-            class="textarea" 
-            rows="3" 
-            placeholder="Jak probíhal tvůj výběr školy v devítce? Co pro tebe bylo rozhodující (obor, kamarádi, atmosféra, vybavení)?" 
-            required
-          ></textarea>
+      <!-- ==========================================
+           PAGE 3: CO DOPORUČIT STUDENTŮM (Spotlight Page)
+           ========================================== -->
+      <div class="form-step" data-step="3">
+        <div class="step-header">
+          <span class="step-pill">03 • Vzkaz pro prváky</span>
+          <h1 class="step-title">Co bys doporučil/a budoucím studentům?</h1>
+          <p class="step-desc">Představ si, že mluvíš k deváťákovi, který teď zvažuje přihlášku. Co bys mu poradil/a?</p>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="whatYouLike">
-            Co se ti na škole nejvíc líbí / co tě baví? <span class="required-asterisk">*</span>
-          </label>
-          <textarea 
-            id="whatYouLike" 
-            name="whatYouLike" 
-            class="textarea" 
-            rows="3" 
-            placeholder="Přístup učitelů, praxe, moderní učebny, spolužáci, školní akce, kroužky, volnost v projektech..." 
-            required
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="favoriteSubject">
-            Oblíbený předmět nebo zaměření
-          </label>
-          <input 
-            type="text" 
-            id="favoriteSubject" 
-            name="favoriteSubject" 
-            class="input" 
-            placeholder="např. Vývoj webových aplikací, Počítačové sítě, 3D modelování, Grafika..."
-          >
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="adviceForFreshmen">
-            Co bys doporučil/a budoucím studentům? <span class="form-hint" style="margin-left: 6px; font-weight: normal;">(vzkaz pro uchazeče / deváťáky)</span>
-          </label>
-          <textarea 
-            id="adviceForFreshmen" 
-            name="adviceForFreshmen" 
-            class="textarea textarea-large" 
-            rows="5" 
-            placeholder="Co bys vzkázal/a těm, kteří teď zvažují přihlášku? Na co se připravit, čeho se nebát, jaké kroužky nebo aktivity vyzkoušet, co ti nejvíc pomohlo v prváku..."
-          ></textarea>
-        </div>
-      </section>
-
-      <!-- Section 3: Projekty a úspěchy -->
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">3</span>
-          <div>
-            <h2 class="section-title">Projekty a úspěchy</h2>
-            <p class="section-desc">Ukaž, na čem makáš a co se ti povedlo</p>
+        <div class="step-content">
+          <div class="form-group">
+            <label class="form-label" for="adviceForFreshmen">
+              Tvůj vzkaz a doporučení
+            </label>
+            <textarea 
+              id="adviceForFreshmen" 
+              name="adviceForFreshmen" 
+              class="textarea textarea-spotlight" 
+              rows="7" 
+              placeholder="Na co se připravit? Čeho se nebát? Jaké kroužky zkusit, jak si rozvrhnout čas, co ti nejvíc pomohlo v prváku nebo co bys udělal/a jinak, kdybys byl/a znova v devítce?"
+            ></textarea>
+            <span class="form-hint">Můžeš se rozepsat – toto je jedna z nejčtenějších částí pro uchazeče a jejich rodiče!</span>
           </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="projects">
-            Projekty, na kterých jsi pracoval/a
-          </label>
-          <textarea 
-            id="projects" 
-            name="projects" 
-            class="textarea" 
-            rows="3" 
-            placeholder="Vlastní weby, mobilní aplikace, hry, grafické práce, maturitní projekty, robotika, servery..."
-          ></textarea>
-          <span class="form-hint">Můžeš uvést i krátký odkaz nebo popsat, co projekt umí.</span>
+      <!-- ==========================================
+           PAGE 4: Projekty a úspěchy
+           ========================================== -->
+      <div class="form-step" data-step="4">
+        <div class="step-header">
+          <span class="step-pill">04 • Tvoje tvorba</span>
+          <h1 class="step-title">Na čem pracuješ a co se ti povedlo?</h1>
+          <p class="step-desc">Ukaž reálné věci, na kterých jsi pracoval/a během studia i ve volném čase.</p>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="competitions">
-            Soutěže, hackathony a ocenění
-          </label>
-          <textarea 
-            id="competitions" 
-            name="competitions" 
-            class="textarea" 
-            rows="2" 
-            placeholder="např. 1. místo na krajském hackathonu, účast v SOČ, olympiáda v programování..."
-          ></textarea>
-        </div>
-      </section>
+        <div class="step-content">
+          <div class="form-group">
+            <label class="form-label" for="projects">
+              Projekty, na kterých jsi pracoval/a
+            </label>
+            <textarea 
+              id="projects" 
+              name="projects" 
+              class="textarea" 
+              rows="4" 
+              placeholder="Webové aplikace, hry, grafický design, robotika, servery, mobilní appky, maturitní projekty..."
+            ></textarea>
+            <span class="form-hint">Můžeš uvést i odkaz nebo stručně popsat, co projekt umí.</span>
+          </div>
 
-      <!-- Section 4: Sociální sítě & Odkazy -->
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">4</span>
-          <div>
-            <h2 class="section-title">Odkazy a sociální sítě</h2>
-            <p class="section-desc">Kde tě mohou uchazeči a škola najít (vše je volitelné)</p>
+          <div class="form-group">
+            <label class="form-label" for="competitions">
+              Soutěže, hackathony a ocenění
+            </label>
+            <textarea 
+              id="competitions" 
+              name="competitions" 
+              class="textarea" 
+              rows="3" 
+              placeholder="např. 1. místo na krajském hackathonu, účast v SOČ, olympiáda z programování, grafická soutěž..."
+            ></textarea>
           </div>
         </div>
+      </div>
 
-        <div class="form-grid">
+      <!-- ==========================================
+           PAGE 5: Sociální sítě & Odkazy
+           ========================================== -->
+      <div class="form-step" data-step="5">
+        <div class="step-header">
+          <span class="step-pill">05 • Kontakty & Odkazy</span>
+          <h1 class="step-title">Kde tě lidé mohou najít?</h1>
+          <p class="step-desc">Všechny sítě jsou volitelné. Vyplň jen ty, které chceš sdílet s uchazeči a školou.</p>
+        </div>
+
+        <div class="step-content">
           <div class="form-group">
             <label class="form-label" for="instagram">Instagram</label>
             <input 
@@ -257,91 +302,98 @@
             >
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- Section 5: Reprezentativní fotka -->
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">5</span>
-          <div>
-            <h2 class="section-title">Tvoje fotografie</h2>
-            <p class="section-desc">Reprezentativní fotka publikovatelná na web DOD nebo školy</p>
-          </div>
+      <!-- ==========================================
+           PAGE 6: Fotka & Odeslání
+           ========================================== -->
+      <div class="form-step" data-step="6">
+        <div class="step-header">
+          <span class="step-pill">06 • Poslední krok</span>
+          <h1 class="step-title">Nahraj svoji fotografii</h1>
+          <p class="step-desc">Reprezentativní fotka, která se objeví na webu a prezentacích DOD.</p>
         </div>
 
-        <div class="form-group">
-          <div class="upload-zone" id="uploadZone">
-            <input 
-              type="file" 
-              id="photo" 
-              name="photo" 
-              accept="image/png, image/jpeg, image/webp, image/heic"
-            >
-            <div class="upload-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="step-content">
+          <div class="form-group">
+            
+            <!-- Mobile Photo Upload Card -->
+            <div class="mobile-photo-card" id="uploadZone">
+              <input 
+                type="file" 
+                id="photo" 
+                name="photo" 
+                accept="image/*"
+              >
+              <div class="photo-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+              <div class="photo-card-title">Vybrat fotku z mobilu / Vyfotit</div>
+              <p class="photo-card-sub">Klepni sem pro otevření galerie nebo fotoaparátu (JPG, PNG, WEBP, max 15 MB).</p>
             </div>
-            <p class="upload-prompt">
-              Přetáhni fotku sem nebo <span>vyber z počítače/mobilu</span>
-            </p>
-            <p class="upload-sub">Podporované formáty: JPG, PNG, WEBP, HEIC (max 15 MB). Doporučujeme portrétní fotku s dobrým světlem.</p>
-          </div>
 
-          <!-- Preview box -->
-          <div class="preview-container" id="previewContainer">
-            <img id="previewImage" src="" alt="Náhled fotky" class="preview-thumb">
-            <div class="preview-info">
-              <div class="preview-name" id="previewName">fotka.jpg</div>
-              <div class="preview-meta" id="previewMeta">0 KB</div>
+            <!-- Preview box -->
+            <div class="mobile-preview-box" id="previewContainer">
+              <img id="previewImage" src="" alt="Náhled fotky" class="mobile-preview-img">
+              <div class="mobile-preview-details">
+                <div class="preview-name" id="previewName">fotka.jpg</div>
+                <div class="preview-meta" id="previewMeta">0 KB</div>
+                <button type="button" class="btn-change-photo" id="removePhotoBtn">
+                  Změnit / Odstranit fotku
+                </button>
+              </div>
             </div>
-            <button type="button" class="preview-remove" id="removePhotoBtn">
-              Odstranit
-            </button>
+
+          </div>
+
+          <!-- Consent Checkbox -->
+          <div class="consent-card">
+            <label class="checkbox-container">
+              <input type="checkbox" id="consent" name="consent" checked required>
+              <span class="checkbox-checkmark"></span>
+              <span class="checkbox-text">
+                Souhlasím se zveřejněním svých odpovědí a fotografie na webu a sociálních sítích školy v rámci propagace Dne otevřených dveří.
+              </span>
+            </label>
           </div>
         </div>
-
-        <!-- Consent -->
-        <div class="checkbox-group">
-          <input type="checkbox" id="consent" name="consent" required checked>
-          <label for="consent" class="checkbox-label">
-            Souhlasím se zveřejněním svých odpovědí a fotografie na webu a sociálních sítích školy v rámci propagace školy a Dne otevřených dveří.
-          </label>
-        </div>
-      </section>
-
-      <!-- Submit Section -->
-      <div style="margin-top: 24px;">
-        <button type="submit" class="btn btn-primary" id="submitBtn">
-          <span class="spinner" id="submitSpinner"></span>
-          <span id="submitText">Odeslat odpovědi</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
       </div>
 
     </form>
 
     <!-- Success Screen (Shown after successful submission) -->
-    <div id="successScreen" class="success-screen">
-      <div class="success-icon">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <div id="successScreen" class="success-screen-mobile">
+      <div class="success-icon-badge">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h2 class="success-title">Díky moc za tvůj čas!</h2>
-      <p class="success-message">
-        Tvoje odpovědi i fotka byly v pořádku zaznamenány. Pomůže to budoucím uchazečům vybrat si správnou cestu.
+      <h2 class="success-mobile-title">Díky moc za tvůj příběh!</h2>
+      <p class="success-mobile-desc">
+        Tvoje odpovědi i fotka byly úspěšně odeslány a uloženy. Na DOD pomohou novým uchazečům vybrat si správnou cestu.
       </p>
-      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+
+      <div class="success-actions">
         <button type="button" class="btn btn-secondary" id="newResponseBtn">
-          Odeslat další odpověď
+          Vyplnit další odpověď
         </button>
-        <a href="/admin" class="btn btn-primary" style="width: auto;">
-          Zobrazit přehled v administraci
+        <a href="/admin" class="btn btn-primary">
+          Přejít do administrace
         </a>
       </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-      INFIS Plzeň • Formulář pro Den otevřených dveří
-    </footer>
+    <!-- Sticky Bottom Navigation Bar for Mobile Thumbs -->
+    <div class="bottom-nav" id="bottomNav">
+      <button type="button" class="btn btn-secondary btn-nav-back" id="prevBtn" style="display: none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Zpět
+      </button>
+
+      <button type="button" class="btn btn-primary btn-nav-next" id="nextBtn">
+        <span class="spinner" id="submitSpinner"></span>
+        <span id="nextBtnText">Pokračovat</span>
+        <svg id="nextBtnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
 
   </div>
 
