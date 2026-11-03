@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrace odpovědí – DOD | INFIS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', var(--font-sans); }
+  </style>
+</head>
+<body>
+
+  <div class="container container-wide">
+    
+    <!-- Top Navigation -->
+    <div class="top-nav" style="justify-content: space-between;">
+      <a href="/" class="nav-link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zpět na formulář
+      </a>
+      <span class="badge" style="margin: 0;">
+        <span class="badge-dot"></span>
+        Administrace odpovědí
+      </span>
+    </div>
+
+    <!-- Header & Action Buttons -->
+    <div class="admin-header">
+      <div>
+        <h1 class="title">Přehled odpovědí studentů</h1>
+        <p class="subtitle">Všechny odpovědi a fotografie studentů připravené pro web a Den otevřených dveří.</p>
+      </div>
+      <div class="admin-actions">
+        <button type="button" class="btn btn-secondary" id="refreshBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Obnovit
+        </button>
+        <a href="/api/export/csv" class="btn btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV (Excel)
+        </a>
+        <a href="/api/export/json" class="btn btn-secondary">
+          Export JSON
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Celkem odpovědí</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">S nahranou fotkou</div>
+        <div class="stat-value" id="statWithPhotos">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Zapojené třídy</div>
+        <div class="stat-value" id="statClasses">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Poslední záznam</div>
+        <div class="stat-value" id="statLatest" style="font-size: 1.15rem; font-weight: 600; padding-top: 6px;">—</div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="filter-bar">
+      <input 
+        type="text" 
+        id="searchInput" 
+        class="input filter-input" 
+        placeholder="Hledat podle jména, třídy, projektu, textu..."
+      >
+      <select id="classFilter" class="select filter-select">
+        <option value="">Všechny třídy</option>
+      </select>
+      <select id="photoFilter" class="select filter-select">
+        <option value="">Všechny záznamy</option>
+        <option value="withPhoto">Pouze s fotkou</option>
+        <option value="withoutPhoto">Bez fotky</option>
+      </select>
+    </div>
+
+    <!-- Results count & state -->
+    <div style="margin-bottom: 16px; font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+      <span id="resultsCount">Načítám odpovědi...</span>
+    </div>
+
+    <!-- Submissions Cards Grid -->
+    <div id="cardsGrid" class="cards-grid"></div>
+
+    <!-- Empty state -->
+    <div id="emptyState" style="display: none; text-align: center; padding: 60px 20px; background: #fff; border: 1px dashed var(--border-light); border-radius: var(--radius-lg);">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-subtle)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <h3 style="font-size: 1.15rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Zatím žádné odpovědi</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 400px; margin: 0 auto 16px;">
+        Zatím nikdo neodeslal formulář nebo žádný záznam neodpovídá zadaným filtrům.
+      </p>
+      <a href="/" class="btn btn-secondary" style="display: inline-flex;">Vyplnit formulář</a>
+    </div>
+
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="modalCloseBtn">&times;</button>
+      <div id="modalBody">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
