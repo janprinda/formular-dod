@@ -23,9 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewMeta = document.getElementById('previewMeta');
   const removePhotoBtn = document.getElementById('removePhotoBtn');
 
-  // Class chips
+  // Class input
   const classInput = document.getElementById('schoolClass');
-  const chips = document.querySelectorAll('#classChips .chip');
 
   let currentStep = 1;
   const totalSteps = steps.length;
@@ -172,26 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Class chips quick-tap
-  chips.forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const val = chip.dataset.val;
-      classInput.value = val;
-      chips.forEach((c) => c.classList.remove('active'));
-      chip.classList.add('active');
-    });
-  });
 
-  classInput.addEventListener('input', () => {
-    const val = classInput.value.trim().toUpperCase();
-    chips.forEach((c) => {
-      if (c.dataset.val === val) {
-        c.classList.add('active');
-      } else {
-        c.classList.remove('active');
-      }
-    });
-  });
 
   // Enter key navigation on single line inputs
   form.addEventListener('keydown', (e) => {
@@ -311,7 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
   newResponseBtn.addEventListener('click', () => {
     form.reset();
     clearPhoto();
-    chips.forEach((c) => c.classList.remove('active'));
     currentStep = 1;
     form.style.display = 'flex';
     bottomNav.style.display = 'flex';

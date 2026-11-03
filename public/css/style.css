@@ -358,51 +358,7 @@ html {
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
-/* Quick Chips for mobile tapping */
-.chips-label {
-  font-size: 0.76rem;
-  color: var(--text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
-  margin-top: 10px;
-  margin-bottom: 2px;
-}
 
-.chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.chip {
-  padding: 8px 14px;
-  border-radius: var(--radius-full);
-  background-color: var(--bg-chip);
-  border: 1px solid var(--border-light);
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.chip:hover {
-  background-color: #222228;
-  color: var(--text-main);
-  border-color: var(--border-hover);
-}
-
-.chip.active {
-  background-color: var(--bg-chip-active);
-  color: #ffffff;
-  border-color: var(--bg-chip-active);
-  box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
-}
 
 /* =========================================================
    Mobile Photo Upload Card
