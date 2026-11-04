@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Auth & Screen elements
+  const loginOverlay = document.getElementById('loginOverlay');
+  const loginForm = document.getElementById('loginForm');
+  const adminPassword = document.getElementById('adminPassword');
+  const loginError = document.getElementById('loginError');
+  const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+  const adminDashboard = document.getElementById('adminDashboard');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+  const exportJsonBtn = document.getElementById('exportJsonBtn');
+
+  // Main elements
   const cardsGrid = document.getElementById('cardsGrid');
   const emptyState = document.getElementById('emptyState');
   const resultsCount = document.getElementById('resultsCount');
@@ -43,14 +55,78 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Auth Helpers
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  }
+
+  function getToken() {
+    return sessionStorage.getItem('admin_token') || getCookie('admin_auth') || null;
+  }
+
+  function setToken(token) {
+    sessionStorage.setItem('admin_token', token);
+    document.cookie = `admin_auth=${encodeURIComponent(token)}; path=/; max-age=86400; SameSite=Lax`;
+  }
+
+  function clearToken() {
+    sessionStorage.removeItem('admin_token');
+    document.cookie = 'admin_auth=; path=/; max-age=0; SameSite=Lax';
+  }
+
+  function showLogin(errMsg = null) {
+    if (loginOverlay) loginOverlay.style.display = 'flex';
+    if (adminDashboard) adminDashboard.style.display = 'none';
+    if (loginError) {
+      if (errMsg) {
+        loginError.textContent = errMsg;
+        loginError.style.display = 'flex';
+      } else {
+        loginError.style.display = 'none';
+      }
+    }
+    if (adminPassword) {
+      adminPassword.value = '';
+      setTimeout(() => adminPassword.focus(), 50);
+    }
+  }
+
+  function showDashboard() {
+    if (loginOverlay) loginOverlay.style.display = 'none';
+    if (adminDashboard) adminDashboard.style.display = 'block';
+
+    const token = getToken();
+    if (token) {
+      if (exportCsvBtn) exportCsvBtn.href = `/api/export/csv?auth=${encodeURIComponent(token)}`;
+      if (exportJsonBtn) exportJsonBtn.href = `/api/export/json?auth=${encodeURIComponent(token)}`;
+    }
+    loadData();
+  }
+
   // Load submissions and stats
   async function loadData() {
+    const token = getToken();
+    if (!token) {
+      showLogin();
+      return;
+    }
+
     resultsCount.textContent = 'Načítám data...';
     try {
+      const headers = { 'Authorization': `Bearer ${token}` };
       const [resSubmissions, resStats] = await Promise.all([
-        fetch('/api/submissions'),
-        fetch('/api/stats'),
+        fetch('/api/submissions', { headers }),
+        fetch('/api/stats', { headers }),
       ]);
+
+      if (resSubmissions.status === 401 || resStats.status === 401) {
+        clearToken();
+        showLogin('Platnost přihlášení vypršela nebo je heslo neplatné.');
+        return;
+      }
 
       if (!resSubmissions.ok || !resStats.ok) {
         throw new Error('Chyba při stahování dat');
@@ -348,8 +424,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const token = getToken();
+    if (!token) {
+      showLogin();
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/submissions/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/submissions/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (res.status === 401) {
+        clearToken();
+        showLogin('Platnost přihlášení vypršela nebo je heslo neplatné.');
+        return;
+      }
+
       if (!res.ok) throw new Error('Nepodařilo se smazat');
 
       allSubmissions = allSubmissions.filter((s) => s.id !== id);
@@ -365,6 +457,59 @@ document.addEventListener('DOMContentLoaded', () => {
   photoFilter.addEventListener('change', renderList);
   refreshBtn.addEventListener('click', loadData);
 
-  // Initial load
-  loadData();
+  // Login form handler
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (loginError) loginError.style.display = 'none';
+
+      const password = adminPassword.value.trim();
+      if (!password) return;
+
+      if (loginSubmitBtn) {
+        loginSubmitBtn.disabled = true;
+        loginSubmitBtn.textContent = 'Ověřuji...';
+      }
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Nesprávné heslo administrátora.');
+        }
+
+        setToken(data.token);
+        showDashboard();
+      } catch (err) {
+        showLogin(err.message || 'Nesprávné heslo administrátora.');
+      } finally {
+        if (loginSubmitBtn) {
+          loginSubmitBtn.disabled = false;
+          loginSubmitBtn.textContent = 'Přihlásit se';
+        }
+      }
+    });
+  }
+
+  // Logout handler
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      clearToken();
+      showLogin();
+    });
+  }
+
+  // Initial check: is user already authenticated?
+  const initialToken = getToken();
+  if (initialToken) {
+    showDashboard();
+  } else {
+    showLogin();
+  }
 });

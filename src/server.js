@@ -105,11 +105,44 @@ app.get('/', (req, res) => {
   res.sendFile(path.resolve(PUBLIC_DIR, 'index.html'));
 });
 
+// Admin Password & Authentication
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
+
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const bearerToken = authHeader ? authHeader.replace(/^Bearer\s+/i, '').trim() : null;
+  const queryToken = req.query.auth ? String(req.query.auth).trim() : null;
+  const cookieToken = req.headers.cookie
+    ? req.headers.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('admin_auth='))?.split('=')[1]
+    : null;
+
+  const provided = bearerToken || queryToken || cookieToken;
+
+  if (provided && provided === ADMIN_PASSWORD) {
+    return next();
+  }
+
+  return res.status(401).json({ error: 'Neautorizovaný přístup. Zadejte správné heslo administrátora.' });
+};
+
+// Admin login verification endpoint
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body || {};
+  if (password && String(password).trim() === ADMIN_PASSWORD) {
+    return res.json({
+      success: true,
+      token: ADMIN_PASSWORD,
+      message: 'Přihlášení úspěšné.',
+    });
+  }
+  return res.status(401).json({ error: 'Nesprávné heslo administrátora.' });
+});
+
 // ==========================================
 // API ROUTES
 // ==========================================
 
-// Create a new submission
+// Create a new submission (Public for students)
 app.post('/api/submissions', upload.single('photo'), async (req, res) => {
   try {
     const { fullName, schoolClass } = req.body;
@@ -136,8 +169,8 @@ app.post('/api/submissions', upload.single('photo'), async (req, res) => {
   }
 });
 
-// Get all submissions
-app.get('/api/submissions', async (req, res) => {
+// Get all submissions (Protected)
+app.get('/api/submissions', authMiddleware, async (req, res) => {
   try {
     const list = await storage.getAll();
     return res.json(list);
@@ -147,8 +180,8 @@ app.get('/api/submissions', async (req, res) => {
   }
 });
 
-// Get single submission
-app.get('/api/submissions/:id', async (req, res) => {
+// Get single submission (Protected)
+app.get('/api/submissions/:id', authMiddleware, async (req, res) => {
   try {
     const item = await storage.getById(req.params.id);
     if (!item) {
@@ -161,8 +194,8 @@ app.get('/api/submissions/:id', async (req, res) => {
   }
 });
 
-// Delete a submission
-app.delete('/api/submissions/:id', async (req, res) => {
+// Delete a submission (Protected)
+app.delete('/api/submissions/:id', authMiddleware, async (req, res) => {
   try {
     const deleted = await storage.delete(req.params.id);
     if (!deleted) {
@@ -175,8 +208,8 @@ app.delete('/api/submissions/:id', async (req, res) => {
   }
 });
 
-// Get stats
-app.get('/api/stats', async (req, res) => {
+// Get stats (Protected)
+app.get('/api/stats', authMiddleware, async (req, res) => {
   try {
     const stats = await storage.getStats();
     return res.json(stats);
@@ -186,8 +219,8 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Export CSV
-app.get('/api/export/csv', async (req, res) => {
+// Export CSV (Protected)
+app.get('/api/export/csv', authMiddleware, async (req, res) => {
   try {
     const csvData = await storage.exportCSV();
     const dateStr = new Date().toISOString().split('T')[0];
@@ -200,8 +233,8 @@ app.get('/api/export/csv', async (req, res) => {
   }
 });
 
-// Export JSON
-app.get('/api/export/json', async (req, res) => {
+// Export JSON (Protected)
+app.get('/api/export/json', authMiddleware, async (req, res) => {
   try {
     const list = await storage.getAll();
     const dateStr = new Date().toISOString().split('T')[0];
