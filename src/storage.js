@@ -45,6 +45,109 @@ const BUNDLED_DB = path.resolve(__dirname, '../data/submissions.json');
 // Process-level in-memory cache to guarantee persistence within the container
 let memorySubmissions = null;
 
+// ==========================================
+// CLOUD BACKEND 1: VERCEL KV / UPSTASH REDIS
+// (Automatically active when KV is connected in Vercel Storage)
+// ==========================================
+const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+async function readFromKV() {
+  if (!KV_URL || !KV_TOKEN) return null;
+  try {
+    const res = await fetch(`${KV_URL}/get/dod_submissions`, {
+      headers: { Authorization: `Bearer ${KV_TOKEN}` },
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (body && body.result) {
+      const parsed = typeof body.result === 'string' ? JSON.parse(body.result) : body.result;
+      return Array.isArray(parsed) ? parsed : null;
+    }
+  } catch (err) {
+    console.warn('KV read error:', err.message);
+  }
+  return null;
+}
+
+async function writeToKV(list) {
+  if (!KV_URL || !KV_TOKEN) return false;
+  try {
+    const res = await fetch(KV_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${KV_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(['SET', 'dod_submissions', JSON.stringify(list)]),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('KV write error:', err.message);
+    return false;
+  }
+}
+
+// ==========================================
+// CLOUD BACKEND 2: GITHUB API SYNC
+// (Active if GITHUB_TOKEN environment variable is set)
+// ==========================================
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_REPO = process.env.GITHUB_REPO || 'janprinda/formular-dod';
+const GITHUB_FILE_PATH = 'data/submissions.json';
+
+async function readFromGitHub() {
+  if (!GITHUB_TOKEN) return null;
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'formular-dod',
+      },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const content = Buffer.from(data.content, 'base64').toString('utf8');
+    const parsed = JSON.parse(content);
+    return { list: Array.isArray(parsed) ? parsed : [], sha: data.sha };
+  } catch (err) {
+    console.warn('GitHub read error:', err.message);
+    return null;
+  }
+}
+
+async function writeToGitHub(list) {
+  if (!GITHUB_TOKEN) return false;
+  try {
+    const current = await readFromGitHub();
+    const sha = current?.sha;
+
+    const content = Buffer.from(JSON.stringify(list, null, 2)).toString('base64');
+    const body = {
+      message: 'chore(data): sync DOD student submissions',
+      content,
+      branch: 'main',
+    };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'formular-dod',
+      },
+      body: JSON.stringify(body),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('GitHub write error:', err.message);
+    return false;
+  }
+}
+
 class Storage {
   async #ensureReady() {
     try {
@@ -62,34 +165,52 @@ class Storage {
   async #readAll() {
     await this.#ensureReady();
 
-    // If already loaded into memory in this process, use it
+    // 1. Check Vercel KV / Upstash Redis (Shared globally across all containers)
+    const kvData = await readFromKV();
+    if (Array.isArray(kvData) && kvData.length > 0) {
+      memorySubmissions = kvData;
+      return memorySubmissions;
+    }
+
+    // 2. Check GitHub API sync
+    const ghData = await readFromGitHub();
+    if (ghData && Array.isArray(ghData.list) && ghData.list.length > 0) {
+      memorySubmissions = ghData.list;
+      return memorySubmissions;
+    }
+
+    // 3. Check process-level in-memory cache
     if (Array.isArray(memorySubmissions) && memorySubmissions.length > 0) {
       return memorySubmissions;
     }
 
-    // 1. Try reading DB_FILE (e.g. /tmp or local data/)
+    // 4. Try reading DB_FILE (e.g. /tmp or local data/)
     try {
       if (fsSync.existsSync(DB_FILE)) {
         const content = await fs.readFile(DB_FILE, 'utf8');
         if (content && content.trim()) {
           memorySubmissions = JSON.parse(content);
-          return memorySubmissions;
+          if (Array.isArray(memorySubmissions) && memorySubmissions.length > 0) {
+            // Seed KV if available
+            writeToKV(memorySubmissions).catch(() => {});
+            return memorySubmissions;
+          }
         }
       }
     } catch (err) {
       console.warn('Could not read DB_FILE:', err.message);
     }
 
-    // 2. Try reading BUNDLED_DB
+    // 5. Try reading BUNDLED_DB
     try {
       if (fsSync.existsSync(BUNDLED_DB)) {
         const content = await fs.readFile(BUNDLED_DB, 'utf8');
         if (content && content.trim()) {
           memorySubmissions = JSON.parse(content);
-          // Try to copy to DB_FILE so future writes stay consistent
           try {
             await fs.writeFile(DB_FILE, content, 'utf8');
           } catch {}
+          writeToKV(memorySubmissions).catch(() => {});
           return memorySubmissions;
         }
       }
@@ -105,23 +226,27 @@ class Storage {
     await this.#ensureReady();
     memorySubmissions = data;
 
-    const jsonString = JSON.stringify(data, null, 2);
+    // 1. Sync to Vercel KV / Upstash Redis (if configured)
+    await writeToKV(data);
 
-    // Try atomic write via temp file
+    // 2. Sync to GitHub in background (if token configured)
+    writeToGitHub(data).catch(() => {});
+
+    // 3. Write to local disk file
+    const jsonString = JSON.stringify(data, null, 2);
     try {
       const tempFile = `${DB_FILE}.${crypto.randomUUID()}.tmp`;
       await fs.writeFile(tempFile, jsonString, 'utf8');
       await fs.rename(tempFile, DB_FILE);
     } catch (err) {
       console.warn('Atomic write failed, attempting direct write:', err.message);
-      // Fallback: direct write
       try {
         await fs.writeFile(DB_FILE, jsonString, 'utf8');
       } catch (err2) {
         try {
           fsSync.writeFileSync(DB_FILE, jsonString, 'utf8');
         } catch (err3) {
-          console.error('All disk writes failed (persisted in memory only):', err3.message);
+          console.error('Disk write failed (stored in memory/KV):', err3.message);
         }
       }
     }
