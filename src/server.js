@@ -3,6 +3,7 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import fsSync from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { storage, UPLOADS_DIR } from './storage.js';
@@ -18,16 +19,50 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Serve static assets
+// Serve static assets from public/
 app.use(express.static(PUBLIC_DIR));
-app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Serve photos from UPLOADS_DIR with fallback to base64 for serverless resilience
+app.get('/uploads/:filename', async (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const filePath = path.resolve(UPLOADS_DIR, filename);
+
+  if (fsSync.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+
+  // If not on disk (e.g. serverless cold container), check if base64 exists in submissions
+  try {
+    const list = await storage.getAll();
+    const item = list.find((s) => s.photo && s.photo.filename === filename);
+    if (item && item.photo && item.photo.base64) {
+      const matches = item.photo.base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const buffer = Buffer.from(matches[2], 'base64');
+        res.setHeader('Content-Type', matches[1]);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(buffer);
+      }
+    }
+  } catch (err) {
+    console.error('Error serving fallback photo:', err);
+  }
+
+  return res.status(404).send('Fotografie nebyla nalezena.');
+});
 
 // Multer Storage Configuration
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Ensure UPLOADS_DIR exists before saving
+    if (!fsSync.existsSync(UPLOADS_DIR)) {
+      try {
+        fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
+      } catch {}
+    }
     cb(null, UPLOADS_DIR);
   },
   filename: (req, file, cb) => {
@@ -63,6 +98,11 @@ const upload = multer({
 // Helper for admin route
 app.get('/admin', (req, res) => {
   res.sendFile(path.resolve(PUBLIC_DIR, 'admin.html'));
+});
+
+// Helper for root route
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(PUBLIC_DIR, 'index.html'));
 });
 
 // ==========================================
@@ -188,10 +228,15 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(PORT, () => {
-  console.log(`\n==================================================`);
-  console.log(`🚀 DOD Formulář běží na http://localhost:${PORT}`);
-  console.log(`📋 Formulář pro studenty: http://localhost:${PORT}`);
-  console.log(`🛡️  Administrace odpovědí: http://localhost:${PORT}/admin`);
-  console.log(`==================================================\n`);
-});
+// Only start listening when not running inside a serverless environment (e.g. Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`\n==================================================`);
+    console.log(`🚀 DOD Formulář běží na http://localhost:${PORT}`);
+    console.log(`📋 Formulář pro studenty: http://localhost:${PORT}`);
+    console.log(`🛡️  Administrace odpovědí: http://localhost:${PORT}/admin`);
+    console.log(`==================================================\n`);
+  });
+}
+
+export default app;

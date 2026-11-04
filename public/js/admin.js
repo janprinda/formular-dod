@@ -148,8 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cardsGrid.innerHTML = filtered
       .map((item) => {
-        const photoHtml = item.photo
-          ? `<img src="${item.photo.url}" alt="${escapeHTML(item.fullName)}" class="card-photo">`
+        const photoSrc = item.photo ? (item.photo.base64 || item.photo.url) : null;
+        const photoHtml = photoSrc
+          ? `<img src="${photoSrc}" alt="${escapeHTML(item.fullName)}" class="card-photo">`
           : `<div class="card-photo-placeholder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
 
         const quote = item.whatYouLike || item.whySchool || 'Žádné podrobnosti.';
@@ -233,14 +234,16 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
+    const photoSrc = item.photo ? (item.photo.base64 || item.photo.url) : null;
+
     modalBody.innerHTML = `
       <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 20px;">
         ${
-          item.photo
+          photoSrc
             ? `<div style="text-align: center;">
-                 <img src="${item.photo.url}" alt="${escapeHTML(item.fullName)}" class="modal-detail-photo">
+                 <img src="${photoSrc}" alt="${escapeHTML(item.fullName)}" class="modal-detail-photo">
                  <div>
-                   <a href="${item.photo.url}" download="${escapeHTML(item.fullName)}_foto" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;">
+                   <a href="${photoSrc}" download="${escapeHTML(item.fullName)}_foto" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;">
                      Stáhnout originál ⤓
                    </a>
                  </div>

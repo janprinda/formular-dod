@@ -1,25 +1,71 @@
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_DIR = path.resolve(__dirname, '../data');
+// Detect serverless environment (Vercel, AWS Lambda)
+const isServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.LAMBDA_TASK_ROOT
+);
+
+// Determine writable data directory
+let DATA_DIR = isServerless
+  ? path.resolve(os.tmpdir(), 'formular-dod-data')
+  : path.resolve(__dirname, '../data');
+
+// Safety check: ensure DATA_DIR is actually writable; fallback to os.tmpdir()
+try {
+  if (!fsSync.existsSync(DATA_DIR)) {
+    fsSync.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  const testFile = path.resolve(DATA_DIR, `.write-test-${Date.now()}`);
+  fsSync.writeFileSync(testFile, '1');
+  fsSync.unlinkSync(testFile);
+} catch {
+  DATA_DIR = path.resolve(os.tmpdir(), 'formular-dod-data');
+  if (!fsSync.existsSync(DATA_DIR)) {
+    try {
+      fsSync.mkdirSync(DATA_DIR, { recursive: true });
+    } catch (e) {
+      console.warn('Could not create DATA_DIR in os.tmpdir():', e.message);
+    }
+  }
+}
+
 const UPLOADS_DIR = path.resolve(DATA_DIR, 'uploads');
 const DB_FILE = path.resolve(DATA_DIR, 'submissions.json');
 
-// Ensure directories exist
-if (!fsSync.existsSync(DATA_DIR)) {
-  fsSync.mkdirSync(DATA_DIR, { recursive: true });
-}
 if (!fsSync.existsSync(UPLOADS_DIR)) {
-  fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
+  try {
+    fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
+  } catch (err) {
+    console.warn('Could not create UPLOADS_DIR:', err.message);
+  }
 }
+
+// Seed with bundled submissions.json if present and DB_FILE doesn't exist
+const bundledDB = path.resolve(__dirname, '../data/submissions.json');
 if (!fsSync.existsSync(DB_FILE)) {
-  fsSync.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf8');
+  if (fsSync.existsSync(bundledDB)) {
+    try {
+      fsSync.copyFileSync(bundledDB, DB_FILE);
+    } catch {
+      try {
+        fsSync.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf8');
+      } catch {}
+    }
+  } else {
+    try {
+      fsSync.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf8');
+    } catch {}
+  }
 }
 
 class Storage {
@@ -38,10 +84,20 @@ class Storage {
   }
 
   async #writeAll(data) {
-    const tempFile = `${DB_FILE}.${crypto.randomUUID()}.tmp`;
-    const jsonString = JSON.stringify(data, null, 2);
-    await fs.writeFile(tempFile, jsonString, 'utf8');
-    await fs.rename(tempFile, DB_FILE);
+    try {
+      const tempFile = `${DB_FILE}.${crypto.randomUUID()}.tmp`;
+      const jsonString = JSON.stringify(data, null, 2);
+      await fs.writeFile(tempFile, jsonString, 'utf8');
+      await fs.rename(tempFile, DB_FILE);
+    } catch (err) {
+      console.error('Error writing submissions.json:', err);
+      // Direct write fallback
+      try {
+        await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+      } catch (e) {
+        console.error('Direct write failed:', e);
+      }
+    }
   }
 
   async getAll() {
@@ -58,6 +114,16 @@ class Storage {
     const list = await this.#readAll();
     const id = crypto.randomUUID();
 
+    let base64 = null;
+    if (file && file.path) {
+      try {
+        const fileBuffer = await fs.readFile(file.path);
+        base64 = `data:${file.mimetype};base64,${fileBuffer.toString('base64')}`;
+      } catch (e) {
+        console.warn('Could not read photo buffer for base64:', e.message);
+      }
+    }
+
     const photoInfo = file
       ? {
           filename: file.filename,
@@ -65,6 +131,7 @@ class Storage {
           mimetype: file.mimetype,
           size: file.size,
           url: `/uploads/${file.filename}`,
+          base64: base64,
         }
       : null;
 
@@ -109,7 +176,7 @@ class Storage {
     const [deleted] = list.splice(index, 1);
     await this.#writeAll(list);
 
-    // Delete photo file if present
+    // Delete photo file if present on disk
     if (deleted.photo?.filename) {
       const filePath = path.resolve(UPLOADS_DIR, deleted.photo.filename);
       try {
