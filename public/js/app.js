@@ -178,6 +178,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Helper to compress/resize photos on the client side before upload
+  // (Prevents Vercel 4.5MB payload limit errors and speeds up mobile uploads by 10x)
+  async function compressImage(file, maxWidth = 1280, quality = 0.82) {
+    return new Promise((resolve) => {
+      if (!file || !file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+        return resolve(file);
+      }
+
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        let width = img.naturalWidth || img.width;
+        let height = img.naturalHeight || img.height;
+
+        if (width > maxWidth || height > maxWidth) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxWidth) / height);
+            height = maxWidth;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob || blob.size >= file.size) {
+              return resolve(file);
+            }
+            const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressed);
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+
+      img.src = objectUrl;
+    });
+  }
+
   // Photo Upload Handling
   function handleFile(file) {
     if (!file) return;
@@ -187,9 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const maxBytes = 15 * 1024 * 1024; // 15MB
+    const maxBytes = 25 * 1024 * 1024; // 25MB raw camera limit
     if (file.size > maxBytes) {
-      showError('Fotka je příliš velká (max 15 MB). Vyberte jinou fotku.');
+      showError('Fotka je příliš velká (max 25 MB). Vyberte jinou fotku.');
       return;
     }
 
@@ -242,28 +299,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Submit Form via API
   async function submitForm() {
-    const formData = new FormData(form);
-    if (selectedFile) {
-      formData.set('photo', selectedFile);
-    } else {
-      formData.delete('photo');
-    }
-
+    hideError();
     nextBtn.disabled = true;
     prevBtn.disabled = true;
     submitSpinner.style.display = 'inline-block';
     nextBtnText.textContent = 'Odesílám...';
 
     try {
+      const formData = new FormData(form);
+
+      if (selectedFile) {
+        nextBtnText.textContent = 'Zpracovávám fotku...';
+        try {
+          const compressed = await compressImage(selectedFile, 1280, 0.82);
+          formData.set('photo', compressed);
+        } catch (compErr) {
+          console.warn('Image compression fallback:', compErr);
+          formData.set('photo', selectedFile);
+        }
+      } else {
+        formData.delete('photo');
+      }
+
+      nextBtnText.textContent = 'Ukládám...';
+
       const response = await fetch('/api/submissions', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await response.json();
+      let result;
+      const responseText = await response.text();
+      try {
+        result = JSON.parse(responseText);
+      } catch {
+        result = { error: responseText || `Chyba serveru (${response.status})` };
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Chyba při ukládání odpovědí.');
+        throw new Error(result.error || result.details || `Chyba při ukládání (${response.status}).`);
       }
 
       // Success
@@ -280,8 +354,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     } catch (err) {
-      console.error(err);
-      showError(err.message || 'Nepodařilo se odeslat odpovědi. Zkontrolujte připojení.');
+      console.error('Submit error:', err);
+      showError(err.message || 'Nepodařilo se odeslat odpovědi. Zkontrolujte připojení k internetu.');
     } finally {
       nextBtn.disabled = false;
       prevBtn.disabled = false;

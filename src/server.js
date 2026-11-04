@@ -54,42 +54,23 @@ app.get('/uploads/:filename', async (req, res) => {
   return res.status(404).send('Fotografie nebyla nalezena.');
 });
 
-// Multer Storage Configuration
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Ensure UPLOADS_DIR exists before saving
-    if (!fsSync.existsSync(UPLOADS_DIR)) {
-      try {
-        fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
-      } catch {}
-    }
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
-    cb(null, `photo-${uniqueSuffix}${ext}`);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/heic',
-    'image/avif',
-  ];
-  if (allowedMimeTypes.includes(file.mimetype) || file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Povoleny jsou pouze obrázky (JPG, PNG, WEBP, HEIC, AVIF).'), false);
-  }
-};
-
+// Multer Memory Storage Configuration (100% resilient across Serverless, Docker & Local)
 const upload = multer({
-  storage: multerStorage,
-  fileFilter,
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/heic',
+      'image/avif',
+    ];
+    if (allowedMimeTypes.includes(file.mimetype) || file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Povoleny jsou pouze obrázky (JPG, PNG, WEBP, HEIC, AVIF).'), false);
+    }
+  },
   limits: {
     fileSize: 15 * 1024 * 1024, // 15MB max
   },

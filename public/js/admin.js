@@ -128,8 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (!resSubmissions.ok || !resStats.ok) {
-        throw new Error('Chyba při stahování dat');
+      if (!resSubmissions.ok) {
+        const errText = await resSubmissions.text();
+        throw new Error(`Chyba při načítání odpovědí (${resSubmissions.status}): ${errText.slice(0, 100)}`);
+      }
+      if (!resStats.ok) {
+        const errText = await resStats.text();
+        throw new Error(`Chyba při načítání statistik (${resStats.status}): ${errText.slice(0, 100)}`);
       }
 
       allSubmissions = await resSubmissions.json();

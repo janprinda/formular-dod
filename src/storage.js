@@ -16,93 +16,120 @@ const isServerless = Boolean(
 );
 
 // Determine writable data directory
-let DATA_DIR = isServerless
-  ? path.resolve(os.tmpdir(), 'formular-dod-data')
-  : path.resolve(__dirname, '../data');
-
-// Safety check: ensure DATA_DIR is actually writable; fallback to os.tmpdir()
-try {
-  if (!fsSync.existsSync(DATA_DIR)) {
-    fsSync.mkdirSync(DATA_DIR, { recursive: true });
+function resolveDataDir() {
+  if (isServerless) {
+    return path.resolve(os.tmpdir(), 'formular-dod-data');
   }
-  const testFile = path.resolve(DATA_DIR, `.write-test-${Date.now()}`);
-  fsSync.writeFileSync(testFile, '1');
-  fsSync.unlinkSync(testFile);
-} catch {
-  DATA_DIR = path.resolve(os.tmpdir(), 'formular-dod-data');
-  if (!fsSync.existsSync(DATA_DIR)) {
-    try {
-      fsSync.mkdirSync(DATA_DIR, { recursive: true });
-    } catch (e) {
-      console.warn('Could not create DATA_DIR in os.tmpdir():', e.message);
+
+  const localDir = path.resolve(__dirname, '../data');
+  try {
+    if (!fsSync.existsSync(localDir)) {
+      fsSync.mkdirSync(localDir, { recursive: true });
     }
+    const testFile = path.resolve(localDir, `.write-test-${Date.now()}`);
+    fsSync.writeFileSync(testFile, '1');
+    fsSync.unlinkSync(testFile);
+    return localDir;
+  } catch {
+    return path.resolve(os.tmpdir(), 'formular-dod-data');
   }
 }
 
+const DATA_DIR = resolveDataDir();
 const UPLOADS_DIR = path.resolve(DATA_DIR, 'uploads');
 const DB_FILE = path.resolve(DATA_DIR, 'submissions.json');
 
-if (!fsSync.existsSync(UPLOADS_DIR)) {
-  try {
-    fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
-  } catch (err) {
-    console.warn('Could not create UPLOADS_DIR:', err.message);
-  }
-}
+// Bundled DB template from repo
+const BUNDLED_DB = path.resolve(__dirname, '../data/submissions.json');
 
-// Seed with bundled submissions.json if present and DB_FILE doesn't exist
-const bundledDB = path.resolve(__dirname, '../data/submissions.json');
-if (!fsSync.existsSync(DB_FILE)) {
-  if (fsSync.existsSync(bundledDB)) {
-    try {
-      fsSync.copyFileSync(bundledDB, DB_FILE);
-    } catch {
-      try {
-        fsSync.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf8');
-      } catch {}
-    }
-  } else {
-    try {
-      fsSync.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf8');
-    } catch {}
-  }
-}
+// Process-level in-memory cache to guarantee persistence within the container
+let memorySubmissions = null;
 
 class Storage {
-  async #readAll() {
+  async #ensureReady() {
     try {
-      const content = await fs.readFile(DB_FILE, 'utf8');
-      if (!content.trim()) return [];
-      return JSON.parse(content);
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        return [];
+      if (!fsSync.existsSync(DATA_DIR)) {
+        fsSync.mkdirSync(DATA_DIR, { recursive: true });
       }
-      console.error('Error reading submissions.json:', err);
-      return [];
+      if (!fsSync.existsSync(UPLOADS_DIR)) {
+        fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
+      }
+    } catch (e) {
+      console.warn('Could not ensure directories exist:', e.message);
     }
+  }
+
+  async #readAll() {
+    await this.#ensureReady();
+
+    // If already loaded into memory in this process, use it
+    if (Array.isArray(memorySubmissions) && memorySubmissions.length > 0) {
+      return memorySubmissions;
+    }
+
+    // 1. Try reading DB_FILE (e.g. /tmp or local data/)
+    try {
+      if (fsSync.existsSync(DB_FILE)) {
+        const content = await fs.readFile(DB_FILE, 'utf8');
+        if (content && content.trim()) {
+          memorySubmissions = JSON.parse(content);
+          return memorySubmissions;
+        }
+      }
+    } catch (err) {
+      console.warn('Could not read DB_FILE:', err.message);
+    }
+
+    // 2. Try reading BUNDLED_DB
+    try {
+      if (fsSync.existsSync(BUNDLED_DB)) {
+        const content = await fs.readFile(BUNDLED_DB, 'utf8');
+        if (content && content.trim()) {
+          memorySubmissions = JSON.parse(content);
+          // Try to copy to DB_FILE so future writes stay consistent
+          try {
+            await fs.writeFile(DB_FILE, content, 'utf8');
+          } catch {}
+          return memorySubmissions;
+        }
+      }
+    } catch (err) {
+      console.warn('Could not read BUNDLED_DB:', err.message);
+    }
+
+    memorySubmissions = [];
+    return memorySubmissions;
   }
 
   async #writeAll(data) {
+    await this.#ensureReady();
+    memorySubmissions = data;
+
+    const jsonString = JSON.stringify(data, null, 2);
+
+    // Try atomic write via temp file
     try {
       const tempFile = `${DB_FILE}.${crypto.randomUUID()}.tmp`;
-      const jsonString = JSON.stringify(data, null, 2);
       await fs.writeFile(tempFile, jsonString, 'utf8');
       await fs.rename(tempFile, DB_FILE);
     } catch (err) {
-      console.error('Error writing submissions.json:', err);
-      // Direct write fallback
+      console.warn('Atomic write failed, attempting direct write:', err.message);
+      // Fallback: direct write
       try {
-        await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
-      } catch (e) {
-        console.error('Direct write failed:', e);
+        await fs.writeFile(DB_FILE, jsonString, 'utf8');
+      } catch (err2) {
+        try {
+          fsSync.writeFileSync(DB_FILE, jsonString, 'utf8');
+        } catch (err3) {
+          console.error('All disk writes failed (persisted in memory only):', err3.message);
+        }
       }
     }
   }
 
   async getAll() {
     const list = await this.#readAll();
-    return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
 
   async getById(id) {
@@ -114,49 +141,64 @@ class Storage {
     const list = await this.#readAll();
     const id = crypto.randomUUID();
 
-    let base64 = null;
-    if (file && file.path) {
-      try {
-        const fileBuffer = await fs.readFile(file.path);
-        base64 = `data:${file.mimetype};base64,${fileBuffer.toString('base64')}`;
-      } catch (e) {
-        console.warn('Could not read photo buffer for base64:', e.message);
-      }
-    }
+    let photoInfo = null;
 
-    const photoInfo = file
-      ? {
-          filename: file.filename,
-          originalName: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-          url: `/uploads/${file.filename}`,
-          base64: base64,
+    if (file) {
+      const ext = path.extname(file.originalname || '').toLowerCase() || '.jpg';
+      const filename = `photo-${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
+      
+      let base64 = null;
+      if (file.buffer) {
+        base64 = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
+      } else if (file.path) {
+        try {
+          const buf = await fs.readFile(file.path);
+          base64 = `data:${file.mimetype || 'image/jpeg'};base64,${buf.toString('base64')}`;
+        } catch {}
+      }
+
+      // Try writing to disk if buffer exists, but never fail if disk is read-only
+      if (file.buffer) {
+        try {
+          await this.#ensureReady();
+          await fs.writeFile(path.resolve(UPLOADS_DIR, filename), file.buffer);
+        } catch (e) {
+          console.warn('Could not write photo file to disk, relying on base64 fallback:', e.message);
         }
-      : null;
+      }
+
+      photoInfo = {
+        filename,
+        originalName: file.originalname || filename,
+        mimetype: file.mimetype || 'image/jpeg',
+        size: file.size || (file.buffer ? file.buffer.length : 0),
+        url: `/uploads/${filename}`,
+        base64,
+      };
+    }
 
     const submission = {
       id,
       createdAt: new Date().toISOString(),
       // 1. O studentovi
-      fullName: (payload.fullName || '').trim(),
-      schoolClass: (payload.schoolClass || '').trim(),
-      email: (payload.email || '').trim(),
+      fullName: String(payload.fullName || '').trim(),
+      schoolClass: String(payload.schoolClass || '').trim(),
+      email: String(payload.email || '').trim(),
       // 2. O škole
-      whySchool: (payload.whySchool || '').trim(),
-      whatYouLike: (payload.whatYouLike || '').trim(),
-      favoriteSubject: (payload.favoriteSubject || '').trim(),
-      adviceForFreshmen: (payload.adviceForFreshmen || '').trim(),
+      whySchool: String(payload.whySchool || '').trim(),
+      whatYouLike: String(payload.whatYouLike || '').trim(),
+      favoriteSubject: String(payload.favoriteSubject || '').trim(),
+      adviceForFreshmen: String(payload.adviceForFreshmen || '').trim(),
       // 3. Projekty & Úspěchy
-      projects: (payload.projects || '').trim(),
-      competitions: (payload.competitions || '').trim(),
+      projects: String(payload.projects || '').trim(),
+      competitions: String(payload.competitions || '').trim(),
       // 4. Sociální sítě & Odkazy
-      instagram: (payload.instagram || '').trim(),
-      github: (payload.github || '').trim(),
-      linkedin: (payload.linkedin || '').trim(),
-      portfolio: (payload.portfolio || '').trim(),
+      instagram: String(payload.instagram || '').trim(),
+      github: String(payload.github || '').trim(),
+      linkedin: String(payload.linkedin || '').trim(),
+      portfolio: String(payload.portfolio || '').trim(),
       // 5. Něco navíc
-      additionalNote: (payload.additionalNote || '').trim(),
+      additionalNote: String(payload.additionalNote || '').trim(),
       // 6. Fotka
       photo: photoInfo,
       // 7. Souhlas
@@ -176,14 +218,12 @@ class Storage {
     const [deleted] = list.splice(index, 1);
     await this.#writeAll(list);
 
-    // Delete photo file if present on disk
+    // Try deleting photo file from disk if present
     if (deleted.photo?.filename) {
       const filePath = path.resolve(UPLOADS_DIR, deleted.photo.filename);
       try {
         await fs.unlink(filePath);
-      } catch (err) {
-        console.warn('Failed to delete photo file:', filePath, err.message);
-      }
+      } catch {}
     }
 
     return true;
